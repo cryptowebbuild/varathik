@@ -81,6 +81,62 @@ export const BUS_ROUTES: BusRoute[] = [
     stops: ["gulshan", "banani", "mohakhali"],
     segmentKm: [1.8, 2.2],
   },
+  {
+    id: "mirpur12-motijheel-ecb",
+    nameBn: "মিরপুর ১২ — মতিঝিল করিডর (ECB / ক্যান্টনমেন্ট)",
+    examples: ["বিকাশ", "শিখর"],
+    stops: ["mirpur-12", "pallabi", "mirpur-11", "mirpur-10", "ecb", "cantonment", "mohakhali", "tejgaon", "farmgate", "karwan", "shahbag", "press-club", "motijheel"],
+    segmentKm: [1.1, 0.9, 1.7, 3.8, 2.5, 3.6, 2.0, 1.0, 0.9, 1.7, 1.7, 1.5],
+  },
+  {
+    id: "gabtoli-motijheel-mirpurroad",
+    nameBn: "গাবতলী — মতিঝিল করিডর (মিরপুর রোড)",
+    examples: ["দিশারী", "বাহন"],
+    stops: ["gabtoli", "technical", "kalyanpur", "shyamoli", "asad-gate", "dhanmondi", "science-lab", "new-market", "du", "shahbag", "press-club", "paltan", "motijheel"],
+    segmentKm: [1.3, 1.0, 1.2, 1.9, 2.2, 1.3, 0.8, 1.0, 1.0, 1.7, 0.8, 1.5],
+  },
+  {
+    id: "banasree-motijheel",
+    nameBn: "বনশ্রী — মতিঝিল করিডর",
+    examples: ["রাইদা", "অনাবিল"],
+    stops: ["banasree", "rampura", "malibagh", "kakrail", "paltan", "motijheel"],
+    segmentKm: [1.8, 1.9, 1.0, 0.9, 1.5],
+  },
+  {
+    id: "uttara-gulshan-link",
+    nameBn: "উত্তরা — গুলশান লিংক (প্রগতি সরণি)",
+    examples: ["রাইদা", "তুরাগ"],
+    stops: ["uttara", "airport", "khilkhet", "kuril", "bashundhara", "natun-bazar", "gulshan"],
+    segmentKm: [4.9, 3.0, 1.1, 1.7, 2.5, 1.6],
+  },
+  {
+    id: "mirpur-uttara-link",
+    nameBn: "মিরপুর — উত্তরা লিংক",
+    examples: ["বিকাশ", "মিরপুর মেট্রো"],
+    stops: ["mirpur-12", "pallabi", "uttara-south", "uttara", "uttara-north"],
+    segmentKm: [1.1, 4.7, 2.5, 4.2],
+  },
+  {
+    id: "jatrabari-mirpur-long",
+    nameBn: "যাত্রাবাড়ী — মিরপুর করিডর (ক্রস-সিটি)",
+    examples: ["খাজাবাবা", "বিকাশ"],
+    stops: ["jatrabari", "sayedabad", "gulistan", "shahbag", "farmgate", "agargaon", "shewrapara", "kazipara", "mirpur-10", "mirpur-1"],
+    segmentKm: [1.4, 2.3, 2.8, 2.6, 3.1, 1.7, 1.2, 1.3, 2.2],
+  },
+  {
+    id: "azimpur-gabtoli-west",
+    nameBn: "আজিমপুর — গাবতলী করিডর (পশ্চিম)",
+    examples: ["রজনীগন্ধা", "মধুমতি"],
+    stops: ["azimpur", "new-market", "science-lab", "dhanmondi", "lalmatia", "mohammadpur", "shyamoli", "kalyanpur", "gabtoli"],
+    segmentKm: [0.9, 0.8, 1.3, 1.7, 1.8, 1.4, 1.2, 2.0],
+  },
+  {
+    id: "khilgaon-banani-east",
+    nameBn: "খিলগাঁও — বনানী করিডর (পূর্ব)",
+    examples: ["ঢাকা চাকা", "রাইদা"],
+    stops: ["khilgaon", "banasree", "rampura", "merul", "badda", "natun-bazar", "gulshan", "banani"],
+    segmentKm: [1.8, 1.8, 2.0, 1.6, 1.5, 1.6, 1.1],
+  },
 ];
 
 export interface BusOption {
