@@ -1,1 +1,37 @@
-{"background_color":"#f2f7f3","description":"বাস, মেট্রো, CNG ও রিকশার সরকারি/ন্যায্য ভাড়া এক ট্যাপে যাচাই করুন।","display":"standalone","icons":[{"purpose":"any","sizes":"any","src":"icon.svg","type":"image/svg+xml"}],"lang":"bn","name":"ভাড়াঠিক? — ঢাকার সঠিক ভাড়া","scope":".","short_name":"ভাড়াঠিক?","start_url":".","theme_color":"#052e16"}
+{
+  "background_color": "#f2f7f3",
+  "description": "বাস, মেট্রো, CNG ও রিকশার সরকারি/ন্যায্য ভাড়া এক ট্যাপে যাচাই করুন।",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "lang": "bn",
+  "name": "ভাড়াঠিক? — ঢাকার সঠিক ভাড়া",
+  "scope": ".",
+  "short_name": "ভাড়াঠিক?",
+  "start_url": ".",
+  "theme_color": "#052e16"
+}
