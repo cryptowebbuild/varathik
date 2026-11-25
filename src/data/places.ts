@@ -57,6 +57,14 @@ export const PLACES: Place[] = [
   { id: "baridhara", bn: "বারিধারা", en: "Baridhara", aliases: ["baridhara"], lat: 23.803, lng: 90.42 },
   { id: "wari", bn: "ওয়ারী", en: "Wari", aliases: ["wari"], lat: 23.718, lng: 90.42 },
   { id: "kamalapur", bn: "কমলাপুর", en: "Kamalapur", aliases: ["kamalapur", "কমলাপুর"], lat: 23.732, lng: 90.426 },
+  { id: "mirpur-12", bn: "মিরপুর ১২", en: "Mirpur 12", aliases: ["mirpur 12", "mirpur12", "মিরপুর ১২"], lat: 23.8285, lng: 90.3735, metro: "pallabi" },
+  { id: "ecb", bn: "ECB চত্বর", en: "ECB Chattar", aliases: ["ecb", "ইসিবি"], lat: 23.8215, lng: 90.3945 },
+  { id: "cantonment", bn: "ক্যান্টনমেন্ট", en: "Cantonment", aliases: ["cantonment", "ক্যান্টনমেন্ট"], lat: 23.8035, lng: 90.3975 },
+  { id: "technical", bn: "টেকনিক্যাল মোড়", en: "Technical Mor", aliases: ["technical", "টেকনিক্যাল"], lat: 23.7845, lng: 90.352 },
+  { id: "banasree", bn: "বনশ্রী", en: "Banasree", aliases: ["banasree", "বনশ্রী", "banashree"], lat: 23.7625, lng: 90.4355 },
+  { id: "merul", bn: "মেরুল বাড্ডা", en: "Merul Badda", aliases: ["merul", "মেরুল"], lat: 23.7745, lng: 90.4275 },
+  { id: "paltan", bn: "পল্টন", en: "Paltan", aliases: ["paltan", "পল্টন"], lat: 23.736, lng: 90.4105 },
+  { id: "kakrail", bn: "কাকরাইল", en: "Kakrail", aliases: ["kakrail", "কাকরাইল"], lat: 23.7425, lng: 90.4095 },
 ];
 
 export function findPlace(id: string): Place {
