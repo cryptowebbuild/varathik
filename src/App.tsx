@@ -327,6 +327,11 @@ export default function App() {
       <footer>
         <p>ভাড়াঠিক? — Build for Bangladesh চ্যালেঞ্জের জন্য তৈরি · ডেটা: BRTA, DMTCL, OpenStreetMap</p>
         <p className="places-count">এখন {PLACES.length}টি এলাকা · {BUS_ROUTES.length}টি বাস করিডর · ঢাকা শহর · <a href="https://github.com/cryptowebbuild/varathik" target="_blank" rel="noreferrer">GitHub-এ কোড দেখুন</a></p>
+        <a className="credit" href="https://cryptowebbuild.com/" target="_blank" rel="noreferrer">
+          <span className="credit-top">⚡ তৈরি ও পরিচালনায়</span>
+          <strong>CryptoWebBuild.com</strong>
+          <span className="credit-sub">Sub-second ওয়েবসাইট · ১-ক্লিক ই-কমার্স স্টোর · 100/100 SEO</span>
+        </a>
       </footer>
     </div>
   );
