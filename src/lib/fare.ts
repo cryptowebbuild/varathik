@@ -1,7 +1,7 @@
 // ভাড়া ইঞ্জিন — সব হিসাব সরকারি রেট (data/rates.ts) থেকে।
 import { RATES } from "../data/rates";
 import { findPlace, type Place } from "../data/places";
-import { metroFare } from "../data/metro";
+import { metroFare, metroStation } from "../data/metro";
 import { findDirectBuses, type BusOption } from "../data/busRoutes";
 
 const toRad = (d: number) => (d * Math.PI) / 180;
@@ -25,6 +25,17 @@ export function roadKm(fromId: string, toId: string): number {
 
 export function busFareForKm(km: number): number {
   return Math.max(RATES.busMinFare, Math.round(km * RATES.busPerKm));
+}
+
+/** বাসের দূরত্বের একটাই সূত্র: সরাসরি করিডর থাকলে তার km, নাহলে সড়ক-দূরত্ব */
+export function busKmFor(fromId: string, toId: string): number {
+  const buses = findDirectBuses(fromId, toId);
+  return buses.length > 0 ? buses[0].km : roadKm(fromId, toId);
+}
+
+/** বাসে ভাড়া সাধারণত ৳৫-এর রাউন্ডে নেওয়া হয় */
+export function round5(n: number): number {
+  return Math.round(n / 5) * 5;
 }
 
 export function cngFareForKm(km: number, waitingMin = 0): number {
@@ -99,7 +110,7 @@ export function computeResults(fromId: string, toId: string): ModeResult[] {
         km: m.km,
         minutes: Math.round((m.km / 32) * 60) + 6,
         official: true,
-        detailBn: "জ্যামমুক্ত — সময় প্রায় নিশ্চিত",
+        detailBn: `${metroStation(from.metro)?.bn ?? ""} স্টেশন → ${metroStation(to.metro)?.bn ?? ""} স্টেশন · জ্যামমুক্ত — সময় প্রায় নিশ্চিত`,
       });
     }
   }
@@ -117,7 +128,7 @@ export function computeResults(fromId: string, toId: string): ModeResult[] {
   });
 
   // রিকশা — ছোট দূরত্বে
-  if (dist <= 7) {
+  if (dist <= 12) {
     const r = rickshawRangeForKm(dist);
     results.push({
       mode: "rickshaw",
@@ -127,7 +138,10 @@ export function computeResults(fromId: string, toId: string): ModeResult[] {
       km: dist,
       minutes: Math.round((dist / 9) * 60),
       official: false,
-      detailBn: "সরকারি রেট নেই — চলতি বাজার ভাড়ার রেঞ্জ",
+      detailBn:
+        dist > 7
+          ? "লম্বা দূরত্বে রিকশা ধীর ও ব্যয়বহুল — তবু বাজার রেঞ্জ দেওয়া হলো (সরকারি রেট নেই)"
+          : "সরকারি রেট নেই — চলতি বাজার ভাড়ার রেঞ্জ",
     });
   }
 
