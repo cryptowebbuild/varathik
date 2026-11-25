@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from "preact/hooks";
 import { PLACES, findPlace, searchPlaces } from "./data/places";
+import { BUS_ROUTES } from "./data/busRoutes";
+import { METRO_STATIONS } from "./data/metro";
 import { RATE_SOURCES } from "./data/rates";
 import { computeResults, busFareForKm, cngFareForKm, roadKm, type ModeResult } from "./lib/fare";
 import { shareFareCard } from "./lib/fareCard";
@@ -119,9 +121,19 @@ export default function App() {
   return (
     <div className="app">
       <header className="hero">
-        <div className="logo">ভাড়াঠিক?</div>
-        <p className="tagline">ঠকবেন না, জেনে উঠুন — বাস · মেট্রো · CNG · রিকশার সঠিক ভাড়া এক জায়গায়</p>
+        <div className="hero-inner">
+          <div className="hero-text">
+            <div className="logo">ভাড়াঠিক?</div>
+            <p className="tagline">ঠকবেন না, জেনে উঠুন — বাস · মেট্রো · CNG · রিকশার সঠিক ভাড়া এক জায়গায়</p>
+            <div className="stats">
+              <div><strong>{PLACES.length}টি</strong><span>এলাকা</span></div>
+              <div><strong>{BUS_ROUTES.length}টি</strong><span>বাস করিডর</span></div>
+              <div><strong>{METRO_STATIONS.length}টি</strong><span>মেট্রো স্টেশন</span></div>
+              <div><strong>৪টি</strong><span>যানবাহন</span></div>
+            </div>
+          </div>
 
+          <div className="hero-panel">
         <div className="search-card">
           <div className="pickers">
             <PlacePicker label="কোথা থেকে" value={from} onChange={setFrom} exclude={to} />
@@ -160,6 +172,8 @@ export default function App() {
           <button className={tab === "check" ? "on" : ""} onClick={() => setTab("check")}>বেশি নিয়েছে?</button>
           <button className={tab === "rates" ? "on" : ""} onClick={() => setTab("rates")}>সরকারি রেট</button>
         </nav>
+          </div>
+        </div>
       </header>
 
       <main>
@@ -173,6 +187,7 @@ export default function App() {
                   {fromPlace.bn} → {toPlace.bn}
                   {cheapest && <span className="best"> · সবচেয়ে সস্তা: {cheapest.titleBn} ৳{cheapest.fare}</span>}
                 </h2>
+                <div className="cards-grid">
                 {results.map((r) => (
                   <article key={r.mode} className={"mode-card" + (r === cheapest ? " cheapest" : "")}>
                     <div className="mode-head">
@@ -211,6 +226,12 @@ export default function App() {
                     )}
                   </article>
                 ))}
+                </div>
+                <div className="how">
+                  <div><strong>১ · রুট বাছুন</strong><span>যেকোনো দুই এলাকা — {PLACES.length}টি জায়গা থেকে</span></div>
+                  <div><strong>২ · সঠিক ভাড়া দেখুন</strong><span>BRTA ও DMTCL-এর সরকারি রেটে হিসাব</span></div>
+                  <div><strong>৩ · কার্ড দেখান</strong><span>ভাড়া কার্ড শেয়ার করে বেশি ভাড়া ঠেকান</span></div>
+                </div>
                 <p className="fineprint">
                   বাসের ভাড়া BRTA রেটে (৳২.৭০/কিমি, সর্বনিম্ন ৳১০) হিসাব করা। কোনো কোনো অপারেটরের নিজস্ব চার্টে ১–২ টাকা এদিক-সেদিক হতে পারে।
                 </p>
@@ -236,6 +257,17 @@ export default function App() {
               />
             </label>
             {extra !== null && (
+              <>
+              <div className="bars">
+                <div className="bar-row">
+                  <span>ন্যায্য ভাড়া ৳{fairForCheck}</span>
+                  <div className="bar"><i style={{ width: `${Math.max(8, Math.round((fairForCheck / Math.max(fairForCheck, chargedNum)) * 100))}%` }} /></div>
+                </div>
+                <div className="bar-row">
+                  <span>নিয়েছে ৳{chargedNum}</span>
+                  <div className={"bar" + (extra > 0 ? " over" : "")}><i style={{ width: `${Math.max(8, Math.round((chargedNum / Math.max(fairForCheck, chargedNum)) * 100))}%` }} /></div>
+                </div>
+              </div>
               <div className={"verdict " + (extra > 0 ? "bad" : "good")}>
                 {extra > 0 ? (
                   <>
@@ -266,6 +298,7 @@ export default function App() {
                   </>
                 )}
               </div>
+              </>
             )}
           </section>
         )}
@@ -293,7 +326,7 @@ export default function App() {
 
       <footer>
         <p>ভাড়াঠিক? — Build for Bangladesh চ্যালেঞ্জের জন্য তৈরি · ডেটা: BRTA, DMTCL, OpenStreetMap</p>
-        <p className="places-count">এখন {PLACES.length}টি এলাকা · ঢাকা শহর</p>
+        <p className="places-count">এখন {PLACES.length}টি এলাকা · {BUS_ROUTES.length}টি বাস করিডর · ঢাকা শহর · <a href="https://github.com/cryptowebbuild/varathik" target="_blank" rel="noreferrer">GitHub-এ কোড দেখুন</a></p>
       </footer>
     </div>
   );
