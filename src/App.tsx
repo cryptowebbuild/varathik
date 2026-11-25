@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "preact/hooks";
 import { PLACES, findPlace, searchPlaces } from "./data/places";
 import { RATE_SOURCES } from "./data/rates";
 import { computeResults, busFareForKm, cngFareForKm, roadKm, type ModeResult } from "./lib/fare";
@@ -49,7 +49,7 @@ function PlacePicker({
             autoFocus
             placeholder="এলাকা খুঁজুন… (Mirpur, মিরপুর, mirpur 10)"
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={(e) => setQ(e.currentTarget.value)}
           />
           <ul>
             {results.map((p) => (
@@ -232,7 +232,7 @@ export default function App() {
                 inputMode="numeric"
                 placeholder="যেমন: ৫০"
                 value={charged}
-                onChange={(e) => setCharged(e.target.value.replace(/[^0-9]/g, ""))}
+                onChange={(e) => setCharged(e.currentTarget.value.replace(/[^0-9]/g, ""))}
               />
             </label>
             {extra !== null && (
