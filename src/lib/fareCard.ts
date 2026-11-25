@@ -11,6 +11,19 @@ export interface FareCardData {
 }
 
 export async function drawFareCard(data: FareCardData): Promise<HTMLCanvasElement> {
+  // বাংলা ফন্ট লোড হওয়া পর্যন্ত অপেক্ষা — নইলে কার্ডে ফলব্যাক/টোফু বসতে পারে
+  try {
+    await Promise.race([
+      Promise.all([
+        document.fonts.load('700 44px "Hind Siliguri"'),
+        document.fonts.load('900 150px "Hind Siliguri"'),
+        document.fonts.ready,
+      ]),
+      new Promise((r) => setTimeout(r, 1800)),
+    ]);
+  } catch {
+    /* ফন্ট না এলেও কার্ড যাবে */
+  }
   const W = 1080;
   const H = 1350;
   const canvas = document.createElement("canvas");
