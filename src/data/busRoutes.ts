@@ -1,6 +1,7 @@
 // ঢাকার প্রধান বাস করিডর — স্টপের ক্রম ও আনুমানিক ধাপ-দূরত্ব (কিমি)।
 // ভাড়া BRTA রেটে হিসাব হয় (rates.ts)। রুটগুলো প্রধান সড়ক করিডর অনুযায়ী সাজানো;
 // প্রতিটি করিডরে একাধিক কোম্পানির বাস চলে — পরিচিত নাম উদাহরণ হিসেবে দেওয়া।
+import { RATES } from "./rates";
 
 export interface BusRoute {
   id: string;
@@ -167,4 +168,34 @@ export function findDirectBuses(fromId: string, toId: string): BusOption[] {
     });
   }
   return out.sort((x, y) => x.km - y.km);
+}
+
+export interface ChartRow {
+  stopId: string;
+  km: number; // ওঠার স্টপ থেকে দূরত্ব
+  fare: number; // BRTA রেটে ভাড়া
+}
+
+/**
+ * বাসের ভেতরে টাঙানো চার্টের মতো: ওঠার স্টপ থেকে রুটের শেষ পর্যন্ত
+ * প্রতিটি স্টপের দূরত্ব ও BRTA রেটে ভাড়া।
+ */
+export function chartFor(option: BusOption): ChartRow[] {
+  const { route, fromIdx, toIdx } = option;
+  const step = fromIdx < toIdx ? 1 : -1;
+  const rows: ChartRow[] = [];
+  let km = 0;
+  let i = fromIdx;
+  for (;;) {
+    rows.push({
+      stopId: route.stops[i],
+      km: Math.round(km * 10) / 10,
+      fare: Math.max(RATES.busMinFare, Math.round(km * RATES.busPerKm)),
+    });
+    if (i === route.stops.length - 1 && step === 1) break;
+    if (i === 0 && step === -1) break;
+    km += step === 1 ? route.segmentKm[i] : route.segmentKm[i - 1];
+    i += step;
+  }
+  return rows;
 }
