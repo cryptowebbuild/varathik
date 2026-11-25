@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "preact/hooks";
 import { PLACES, findPlace, searchPlaces } from "./data/places";
-import { BUS_ROUTES } from "./data/busRoutes";
+import { BUS_ROUTES, chartFor } from "./data/busRoutes";
 import { METRO_STATIONS } from "./data/metro";
 import { RATE_SOURCES } from "./data/rates";
 import { computeResults, busFareForKm, cngFareForKm, roadKm, type ModeResult } from "./lib/fare";
@@ -83,6 +83,8 @@ export default function App() {
   const [tab, setTab] = useState<"fare" | "check" | "rates">("fare");
   const [chargedMode, setChargedMode] = useState<"bus" | "cng">("bus");
   const [charged, setCharged] = useState("");
+  const [metroCard, setMetroCard] = useState(false);
+  const [chartRoute, setChartRoute] = useState<string | null>(null);
   const cardBusy = useRef(false);
 
   const results = useMemo(() => (from !== to ? computeResults(from, to) : []), [from, to]);
@@ -187,51 +189,108 @@ export default function App() {
                   {fromPlace.bn} → {toPlace.bn}
                   {cheapest && <span className="best"> · সবচেয়ে সস্তা: {cheapest.titleBn} ৳{cheapest.fare}</span>}
                 </h2>
+                {results.some((r) => r.mode === "metro") && (
+                  <label className="card-toggle">
+                    <input type="checkbox" checked={metroCard} onChange={(e) => setMetroCard(e.currentTarget.checked)} />
+                    <span>💳 MRT Pass / Rapid Pass আছে — মেট্রো ভাড়ায় ১০% ছাড় দেখান</span>
+                  </label>
+                )}
                 <div className="cards-grid">
-                {results.map((r) => (
+                {results.map((r) => {
+                  const isMetro = r.mode === "metro";
+                  const fare = isMetro && metroCard ? Math.round(r.fare * 0.9) : r.fare;
+                  const shown: ModeResult = {
+                    ...r,
+                    fare,
+                    fareNote: isMetro && metroCard ? `কার্ড ছাড়ে ৳${r.fare - fare} সাশ্রয়` : r.fareNote,
+                  };
+                  return (
                   <article key={r.mode} className={"mode-card" + (r === cheapest ? " cheapest" : "")}>
                     <div className="mode-head">
                       <span className="mode-icon">{MODE_ICON[r.mode]}</span>
                       <div>
-                        <h3>{r.titleBn}</h3>
-                        <p>{r.detailBn}</p>
+                        <h3>{shown.titleBn}</h3>
+                        <p>{shown.detailBn}</p>
                       </div>
-                      {r.official ? <span className="badge official">সরকারি রেট</span> : <span className="badge est">আনুমানিক</span>}
+                      {shown.official ? <span className="badge official">সরকারি রেট</span> : <span className="badge est">আনুমানিক</span>}
                     </div>
                     <div className="mode-stats">
                       <div className="fare">
-                        ৳{r.fare}
-                        {r.fareNote && <small>{r.fareNote}</small>}
+                        ৳{shown.fare}
+                        {shown.fareNote && <small>{shown.fareNote}</small>}
                       </div>
                       <div className="meta">
-                        <span>{r.km} কিমি</span>
-                        <span>~{r.minutes} মিনিট</span>
+                        <span>{shown.km} কিমি</span>
+                        <span>~{shown.minutes} মিনিট</span>
                       </div>
                     </div>
-                    {r.buses && r.buses.length > 0 && (
+                    {shown.buses && shown.buses.length > 0 && (
                       <div className="bus-list">
-                        {r.buses.slice(0, 3).map((b) => (
+                        {shown.buses.slice(0, 3).map((b) => (
                           <div key={b.route.id} className="bus-row">
                             <strong>{b.route.nameBn}</strong>
                             <span>{b.directionStops.map((s) => findPlace(s).bn).join(" → ")}</span>
                             <span className="bus-fare">৳{busFareForKm(b.km)} · {b.km} কিমি</span>
+                            <button
+                              type="button"
+                              className="chart-btn"
+                              onClick={() => setChartRoute(chartRoute === b.route.id ? null : b.route.id)}
+                            >
+                              📋 {chartRoute === b.route.id ? "চার্ট লুকান" : `${fromPlace.bn} থেকে পুরো রুটের ভাড়া চার্ট`}
+                            </button>
+                            {chartRoute === b.route.id && (
+                              <table className="chart-table">
+                                <thead>
+                                  <tr><th>স্টপ</th><th>দূরত্ব</th><th>ভাড়া</th></tr>
+                                </thead>
+                                <tbody>
+                                  {chartFor(b).map((row) => (
+                                    <tr key={row.stopId} className={row.stopId === to ? "dest" : ""}>
+                                      <td>{findPlace(row.stopId).bn}</td>
+                                      <td>{row.km} কিমি</td>
+                                      <td>৳{row.fare}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            )}
                           </div>
                         ))}
                       </div>
                     )}
                     {r.official && (
-                      <button type="button" className="share-btn" onClick={() => onShareCard(r)}>
+                      <button type="button" className="share-btn" onClick={() => onShareCard(shown)}>
                         📤 ভাড়া কার্ড শেয়ার করুন — কন্ডাক্টর/ড্রাইভারকে দেখান
                       </button>
                     )}
                   </article>
-                ))}
+                  );
+                })}
                 </div>
                 <div className="how">
                   <div><strong>১ · রুট বাছুন</strong><span>যেকোনো দুই এলাকা — {PLACES.length}টি জায়গা থেকে</span></div>
                   <div><strong>২ · সঠিক ভাড়া দেখুন</strong><span>BRTA ও DMTCL-এর সরকারি রেটে হিসাব</span></div>
                   <div><strong>৩ · কার্ড দেখান</strong><span>ভাড়া কার্ড শেয়ার করে বেশি ভাড়া ঠেকান</span></div>
                 </div>
+                {cheapest && (
+                  <div className="monthly">
+                    <strong>🧮 প্রতিদিন এই রুটে যাতায়াত করলে</strong>
+                    <p>
+                      {cheapest.titleBn}: একমুখী ৳{cheapest.fare} · যাওয়া-আসা ৳{cheapest.fare * 2}/দিন ·{" "}
+                      মাসে (২৬ কর্মদিবস) <b>৳{cheapest.fare * 52}</b>
+                    </p>
+                    {(() => {
+                      const m = results.find((x) => x.mode === "metro");
+                      if (!m) return null;
+                      const cardFare = Math.round(m.fare * 0.9);
+                      return metroCard ? (
+                        <p>মেট্রো কার্ডে: যাওয়া-আসা ৳{cardFare * 2}/দিন · মাসে ৳{cardFare * 52} — কার্ড ছাড়াই বাঁচছে প্রতি মাসে ৳{(m.fare - cardFare) * 52}।</p>
+                      ) : (
+                        <p>টিপস: মেট্রোতে MRT/Rapid Pass নিলে মাসে আরও ৳{(m.fare - cardFare) * 52} বাঁচবে (প্রতি যাত্রায় ১০% ছাড়)।</p>
+                      );
+                    })()}
+                  </div>
+                )}
                 <p className="fineprint">
                   বাসের ভাড়া BRTA রেটে (৳২.৭০/কিমি, সর্বনিম্ন ৳১০) হিসাব করা। কোনো কোনো অপারেটরের নিজস্ব চার্টে ১–২ টাকা এদিক-সেদিক হতে পারে।
                 </p>
@@ -317,6 +376,11 @@ export default function App() {
                 <p className="source">কার্যকর: {r.effectiveFrom}</p>
               </article>
             ))}
+            <article className="rate-card">
+              <h3>মেট্রো কার্ড ছাড় <span className="badge official">অফিসিয়াল</span></h3>
+              <p className="formula">MRT Pass / Rapid Pass-এ সব মেট্রো ভাড়ায় ১০% ছাড়</p>
+              <p className="source">সূত্র: DMTCL / Rapid Pass (DTCA) — যেমন পূর্ণ রুট ৳১০০-এর বদলে ৳৯০</p>
+            </article>
             <p className="fineprint">
               ভাড়াঠিক কোনো সরকারি প্রতিষ্ঠান নয়। ভাড়াগুলো উপরের প্রকাশিত সরকারি রেট থেকে হিসাব করা — যাচাই করতে সূত্রের ওয়েবসাইট দেখুন।
             </p>
@@ -325,6 +389,13 @@ export default function App() {
       </main>
 
       <footer>
+        <div className="qr-block">
+          <img src={import.meta.env.BASE_URL + "qr.svg"} alt="ভাড়াঠিক অ্যাপের QR কোড" width="92" height="92" />
+          <div>
+            <strong>মোবাইলে স্ক্যান করে খুলুন</strong>
+            <span>যাত্রাপথে ফোনেই ভাড়া যাচাই করুন — ইন্সটল ছাড়াই চলে</span>
+          </div>
+        </div>
         <p>ভাড়াঠিক? — Build for Bangladesh চ্যালেঞ্জের জন্য তৈরি · ডেটা: BRTA, DMTCL, OpenStreetMap</p>
         <p className="places-count">এখন {PLACES.length}টি এলাকা · {BUS_ROUTES.length}টি বাস করিডর · ঢাকা শহর · <a href="https://github.com/cryptowebbuild/varathik" target="_blank" rel="noreferrer">GitHub-এ কোড দেখুন</a></p>
         <a className="credit" href="https://cryptowebbuild.com/" target="_blank" rel="noreferrer">
