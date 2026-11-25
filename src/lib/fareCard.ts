@@ -60,11 +60,23 @@ export function drawFareCard(data: FareCardData): HTMLCanvasElement {
   // সূত্র
   ctx.fillStyle = "#a7f3d0";
   ctx.font = "500 38px 'Hind Siliguri','Noto Sans Bengali',sans-serif";
-  wrapText(ctx, `সূত্র: ${data.sourceBn}`, W / 2, 1090, W - 140, 52);
+  wrapText(ctx, `সূত্র: ${data.sourceBn}`, W / 2, 1080, W - 140, 52);
   ctx.fillStyle = "#6ee7b7";
   ctx.font = "500 34px 'Hind Siliguri','Noto Sans Bengali',sans-serif";
-  ctx.fillText(`বাস রেট: কিমি প্রতি ৳${RATES.busPerKm} · সর্বনিম্ন ৳${RATES.busMinFare} (BRTA)`, W / 2, 1230);
-  ctx.fillText("varathik — ঠকবেন না, জেনে উঠুন", W / 2, 1290);
+  ctx.fillText(`বাস রেট: কিমি প্রতি ৳${RATES.busPerKm} · সর্বনিম্ন ৳${RATES.busMinFare} (BRTA)`, W / 2, 1190);
+
+  // নিচে লিংক পিল — কার্ড যেখানেই শেয়ার হোক, অ্যাপের লিংক সাথে যাবে
+  const pw = 720, ph = 74, px = (W - pw) / 2, py = 1232;
+  ctx.beginPath();
+  ctx.roundRect(px, py, pw, ph, ph / 2);
+  ctx.fillStyle = "#0b3d20";
+  ctx.fill();
+  ctx.strokeStyle = "#22c55e";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = "#4ade80";
+  ctx.font = "600 35px 'Hind Siliguri','Noto Sans Bengali',sans-serif";
+  ctx.fillText("cryptowebbuild.github.io/varathik", W / 2, py + 49);
 
   return canvas;
 }
@@ -89,9 +101,10 @@ export async function shareFareCard(data: FareCardData) {
   const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
   if (!blob) return;
   const file = new File([blob], "varathik-fare-card.png", { type: "image/png" });
+  const shareText = `ভাড়াঠিক? — ${data.fromBn} → ${data.toBn} · ${data.modeBn} সরকারি ভাড়া ৳${data.fare}। নিজে যাচাই করুন: https://cryptowebbuild.github.io/varathik/`;
   const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
   if (nav.canShare && nav.canShare({ files: [file] })) {
-    await navigator.share({ files: [file], title: "অফিসিয়াল ভাড়া কার্ড" });
+    await navigator.share({ files: [file], title: "অফিসিয়াল ভাড়া কার্ড", text: shareText });
     return;
   }
   const url = URL.createObjectURL(blob);
