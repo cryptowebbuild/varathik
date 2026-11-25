@@ -6,6 +6,8 @@
 
 [Arohon — Build for Bangladesh](https://arohon.co/challenges/build-for-bangladesh) চ্যালেঞ্জের এন্ট্রি।
 
+**লাইভ ডেমো: https://cryptowebbuild.github.io/varathik/**
+
 ## কী কী আছে
 
 - **From → To ভাড়া তুলনা** — বাস, মেট্রো, CNG (মিটার), রিকশা পাশাপাশি: ভাড়া, দূরত্ব, আনুমানিক সময়; সবচেয়ে সস্তা অপশন হাইলাইট
