@@ -1,24 +1,30 @@
-// ভাড়াঠিক? — সাধারণ অফলাইন ক্যাশ (অ্যাপ শেল + একই অরিজিনের অ্যাসেট)
-const CACHE = "varathik-v1";
+// ভাড়াঠিক? — অফলাইন ক্যাশ (স্বয়ংক্রিয়ভাবে তৈরি, বিল্ড 412a4eaa)
+const CACHE = "varathik-412a4eaa";
+const PRECACHE = ["./","./index.html","./manifest.webmanifest","./icon.svg","./qr.svg","./assets/index-CMPlD-rM.css","./assets/index-CnolfQU1.js"];
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(["./", "./manifest.webmanifest", "./icon.svg"])));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)));
   self.skipWaiting();
 });
 self.addEventListener("activate", (e) => {
-  e.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-  );
+  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))));
   self.clients.claim();
 });
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
-  e.respondWith(
-    fetch(e.request)
-      .then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copy));
-        return res;
-      })
-      .catch(() => caches.match(e.request))
-  );
+  const url = new URL(e.request.url);
+  if (url.origin !== self.location.origin) return;
+  if (e.request.mode === "navigate") {
+    e.respondWith(fetch(e.request).then((res) => {
+      if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put("./index.html", copy)); }
+      return res;
+    }).catch(() => caches.match("./index.html")));
+    return;
+  }
+  e.respondWith(caches.match(e.request).then((hit) => {
+    const net = fetch(e.request).then((res) => {
+      if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); }
+      return res;
+    }).catch(() => hit);
+    return hit || net;
+  }));
 });
