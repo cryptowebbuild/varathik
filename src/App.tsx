@@ -1,10 +1,14 @@
 import { useMemo, useRef, useState } from "preact/hooks";
 import { PLACES, findPlace, searchPlaces } from "./data/places";
 import { BUS_ROUTES, chartFor } from "./data/busRoutes";
-import { METRO_STATIONS } from "./data/metro";
+import { METRO_STATIONS, metroFare } from "./data/metro";
 import { RATE_SOURCES } from "./data/rates";
-import { computeResults, busFareForKm, cngFareForKm, roadKm, type ModeResult } from "./lib/fare";
+import { computeResults, busFareForKm, busKmFor, round5, cngFareForKm, rickshawRangeForKm, roadKm, type ModeResult } from "./lib/fare";
 import { shareFareCard } from "./lib/fareCard";
+
+/** বাংলা সংখ্যা (০-৯) ইংরেজিতে রূপান্তর — বাংলা কীবোর্ডের ইনপুটের জন্য */
+const bn2en = (v: string) => v.replace(/[০-৯]/g, (d) => String("০১২৩৪৫৬৭৮৯".indexOf(d)));
+const digitsOnly = (v: string) => bn2en(v).replace(/[^0-9]/g, "");
 
 const MODE_ICON: Record<ModeResult["mode"], string> = {
   bus: "🚌",
@@ -81,8 +85,9 @@ export default function App() {
   const [from, setFrom] = useState("mirpur-10");
   const [to, setTo] = useState("motijheel");
   const [tab, setTab] = useState<"fare" | "check" | "rates">("fare");
-  const [chargedMode, setChargedMode] = useState<"bus" | "cng">("bus");
+  const [chargedMode, setChargedMode] = useState<"bus" | "cng" | "metro" | "rickshaw">("bus");
   const [charged, setCharged] = useState("");
+  const [waitMin, setWaitMin] = useState("");
   const [metroCard, setMetroCard] = useState(false);
   const [chartRoute, setChartRoute] = useState<string | null>(null);
   const cardBusy = useRef(false);
@@ -92,8 +97,14 @@ export default function App() {
   const fromPlace = findPlace(from);
   const toPlace = findPlace(to);
 
-  const checkKm = roadKm(from, to);
-  const fairForCheck = chargedMode === "bus" ? busFareForKm(checkKm) : cngFareForKm(checkKm);
+  const metroCheck = fromPlace.metro && toPlace.metro ? metroFare(fromPlace.metro, toPlace.metro) : null;
+  const checkKm = chargedMode === "bus" ? busKmFor(from, to) : chargedMode === "metro" && metroCheck ? metroCheck.km : roadKm(from, to);
+  const waitNum = parseInt(waitMin || "0", 10) || 0;
+  const rickRange = rickshawRangeForKm(checkKm);
+  const fairForCheck =
+    chargedMode === "bus" ? busFareForKm(checkKm) :
+    chargedMode === "cng" ? cngFareForKm(checkKm, waitNum) :
+    chargedMode === "metro" ? (metroCheck?.fare ?? 0) : rickRange.low;
   const chargedNum = parseInt(charged, 10);
   const extra = !isNaN(chargedNum) ? chargedNum - fairForCheck : null;
 
@@ -169,10 +180,10 @@ export default function App() {
           </div>
         </div>
 
-        <nav className="tabs">
-          <button className={tab === "fare" ? "on" : ""} onClick={() => setTab("fare")}>ভাড়া দেখুন</button>
-          <button className={tab === "check" ? "on" : ""} onClick={() => setTab("check")}>বেশি নিয়েছে?</button>
-          <button className={tab === "rates" ? "on" : ""} onClick={() => setTab("rates")}>সরকারি রেট</button>
+        <nav className="tabs" role="tablist">
+          <button role="tab" aria-selected={tab === "fare"} className={tab === "fare" ? "on" : ""} onClick={() => setTab("fare")}>ভাড়া দেখুন</button>
+          <button role="tab" aria-selected={tab === "check"} className={tab === "check" ? "on" : ""} onClick={() => setTab("check")}>বেশি নিয়েছে?</button>
+          <button role="tab" aria-selected={tab === "rates"} className={tab === "rates" ? "on" : ""} onClick={() => setTab("rates")}>সরকারি রেট</button>
         </nav>
           </div>
         </div>
@@ -180,7 +191,7 @@ export default function App() {
 
       <main>
         {tab === "fare" && (
-          <section className="results">
+          <section className="results" aria-live="polite">
             {from === to ? (
               <p className="notice">শুরু আর গন্তব্য আলাদা এলাকা বেছে নিন।</p>
             ) : (
@@ -218,6 +229,9 @@ export default function App() {
                       <div className="fare">
                         ৳{shown.fare}
                         {shown.fareNote && <small>{shown.fareNote}</small>}
+                    {shown.mode === "bus" && shown.fare % 5 !== 0 && (
+                      <small>বাসে সাধারণত ৳৫ রাউন্ডে ৳{round5(shown.fare)} নেওয়া হয়</small>
+                    )}
                       </div>
                       <div className="meta">
                         <span>{shown.km} কিমি</span>
@@ -254,6 +268,7 @@ export default function App() {
                                 </tbody>
                               </table>
                             )}
+                            {chartRoute === b.route.id && <p className="chart-note">BRTA রেটে তৈরি স্টপ-ভিত্তিক চার্ট · বাসে ভাড়া সাধারণত ৳৫-এর রাউন্ডে নেওয়া হয়</p>}
                           </div>
                         ))}
                       </div>
@@ -305,17 +320,33 @@ export default function App() {
             <div className="check-modes">
               <button className={chargedMode === "bus" ? "on" : ""} onClick={() => setChargedMode("bus")}>🚌 বাস</button>
               <button className={chargedMode === "cng" ? "on" : ""} onClick={() => setChargedMode("cng")}>🛺 CNG (মিটার)</button>
+              {metroCheck && <button className={chargedMode === "metro" ? "on" : ""} onClick={() => setChargedMode("metro")}>🚇 মেট্রো</button>}
+              <button className={chargedMode === "rickshaw" ? "on" : ""} onClick={() => setChargedMode("rickshaw")}>🚲 রিকশা</button>
             </div>
             <label className="charged-label">
               আপনার কাছ থেকে কত টাকা নিয়েছে?
               <input
                 inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="যেমন: ৫০"
                 value={charged}
-                onChange={(e) => setCharged(e.currentTarget.value.replace(/[^0-9]/g, ""))}
+                onChange={(e) => setCharged(digitsOnly(e.currentTarget.value))}
               />
             </label>
-            {extra !== null && (
+            {chargedMode === "cng" && (
+              <label className="charged-label">
+                জ্যামে কত মিনিট দাঁড়িয়েছিল? (ঐচ্ছিক — মিটারে অপেক্ষা-চার্জ বৈধ)
+                <input
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="যেমন: ১০"
+                  value={waitMin}
+                  onChange={(e) => setWaitMin(digitsOnly(e.currentTarget.value))}
+                />
+              </label>
+            )}
+            {charged === "" && <p className="fineprint">সংখ্যায় টাকার পরিমাণ লিখুন — বাংলা (৫০) বা ইংরেজি (50), দুটোই চলবে।</p>}
+            {extra !== null && chargedMode !== "rickshaw" && (
               <>
               <div className="bars">
                 <div className="bar-row">
@@ -327,8 +358,18 @@ export default function App() {
                   <div className={"bar" + (extra > 0 ? " over" : "")}><i style={{ width: `${Math.max(8, Math.round((chargedNum / Math.max(fairForCheck, chargedNum)) * 100))}%` }} /></div>
                 </div>
               </div>
-              <div className={"verdict " + (extra > 0 ? "bad" : "good")}>
-                {extra > 0 ? (
+              <div className={"verdict " + (extra > 0 && chargedNum > round5(fairForCheck) ? "bad" : "good")} aria-live="polite">
+                {extra <= 0 ? (
+                  <>
+                    <strong>ভাড়া ঠিক আছে ✓</strong>
+                    <p>সরকারি ভাড়া ৳{fairForCheck} ({checkKm} কিমি) — আপনার দেওয়া ভাড়া এর বেশি নয়।{chargedMode === "metro" && " কার্ড (MRT/Rapid Pass) থাকলে আরও ১০% কম লাগত।"}</p>
+                  </>
+                ) : chargedNum <= round5(fairForCheck) ? (
+                  <>
+                    <strong>প্রায় ঠিক আছে ✓</strong>
+                    <p>সরকারি হিসাব ৳{fairForCheck} ({checkKm} কিমি) — বাসে ভাড়া সাধারণত ৳৫-এ রাউন্ড হয়, তাই ৳{round5(fairForCheck)} পর্যন্ত স্বাভাবিক।</p>
+                  </>
+                ) : (
                   <>
                     <strong>৳{extra} বেশি নিয়েছে!</strong>
                     <p>সরকারি ভাড়া ছিল ৳{fairForCheck} ({checkKm} কিমি)। পরের বার ওঠার আগেই ভাড়া কার্ডটা দেখিয়ে নিন।</p>
@@ -338,7 +379,7 @@ export default function App() {
                       onClick={() =>
                         onShareCard({
                           mode: chargedMode,
-                          titleBn: chargedMode === "bus" ? "লোকাল বাস" : "CNG অটোরিকশা (মিটার)",
+                          titleBn: chargedMode === "bus" ? "লোকাল বাস" : chargedMode === "cng" ? "CNG অটোরিকশা (মিটার)" : "মেট্রোরেল (MRT-6)",
                           fare: fairForCheck,
                           km: checkKm,
                           minutes: 0,
@@ -350,14 +391,29 @@ export default function App() {
                       📤 সঠিক ভাড়ার কার্ড শেয়ার করুন
                     </button>
                   </>
-                ) : (
-                  <>
-                    <strong>ভাড়া ঠিক আছে ✓</strong>
-                    <p>সরকারি ভাড়া ৳{fairForCheck} ({checkKm} কিমি) — আপনার দেওয়া ভাড়া এর বেশি নয়।</p>
-                  </>
                 )}
               </div>
               </>
+            )}
+            {extra !== null && chargedMode === "rickshaw" && (
+              <div className={"verdict " + (chargedNum > rickRange.high ? "bad" : "good")} aria-live="polite">
+                {chargedNum > rickRange.high ? (
+                  <>
+                    <strong>বাজার রেঞ্জের চেয়ে ৳{chargedNum - rickRange.high} বেশি!</strong>
+                    <p>এই দূরত্বে ({checkKm} কিমি) চলতি বাজার রেঞ্জ ৳{rickRange.low}–{rickRange.high}। রিকশার সরকারি রেট নেই — ওঠার আগে দর ঠিক করে নিন।</p>
+                  </>
+                ) : chargedNum < rickRange.low ? (
+                  <>
+                    <strong>রেঞ্জের চেয়েও কমে পেয়েছেন ✓</strong>
+                    <p>এই দূরত্বে ({checkKm} কিমি) চলতি বাজার রেঞ্জ ৳{rickRange.low}–{rickRange.high}।</p>
+                  </>
+                ) : (
+                  <>
+                    <strong>বাজার রেঞ্জের মধ্যে আছে ✓</strong>
+                    <p>এই দূরত্বে ({checkKm} কিমি) চলতি বাজার রেঞ্জ ৳{rickRange.low}–{rickRange.high} — আপনার ভাড়া এর মধ্যেই।</p>
+                  </>
+                )}
+              </div>
             )}
           </section>
         )}
