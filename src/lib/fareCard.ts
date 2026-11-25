@@ -10,7 +10,7 @@ export interface FareCardData {
   sourceBn: string;
 }
 
-export function drawFareCard(data: FareCardData): HTMLCanvasElement {
+export async function drawFareCard(data: FareCardData): Promise<HTMLCanvasElement> {
   const W = 1080;
   const H = 1350;
   const canvas = document.createElement("canvas");
@@ -60,13 +60,13 @@ export function drawFareCard(data: FareCardData): HTMLCanvasElement {
   // সূত্র
   ctx.fillStyle = "#a7f3d0";
   ctx.font = "500 38px 'Hind Siliguri','Noto Sans Bengali',sans-serif";
-  wrapText(ctx, `সূত্র: ${data.sourceBn}`, W / 2, 1080, W - 140, 52);
+  wrapText(ctx, `সূত্র: ${data.sourceBn}`, W / 2, 1058, W - 140, 52);
   ctx.fillStyle = "#6ee7b7";
   ctx.font = "500 34px 'Hind Siliguri','Noto Sans Bengali',sans-serif";
-  ctx.fillText(`বাস রেট: কিমি প্রতি ৳${RATES.busPerKm} · সর্বনিম্ন ৳${RATES.busMinFare} (BRTA)`, W / 2, 1190);
+  ctx.fillText(`বাস রেট: কিমি প্রতি ৳${RATES.busPerKm} · সর্বনিম্ন ৳${RATES.busMinFare} (BRTA)`, W / 2, 1162);
 
   // নিচে লিংক পিল — কার্ড যেখানেই শেয়ার হোক, অ্যাপের লিংক সাথে যাবে
-  const pw = 720, ph = 74, px = (W - pw) / 2, py = 1232;
+  const pw = 800, ph = 70, px = 60, py = 1224;
   ctx.beginPath();
   ctx.roundRect(px, py, pw, ph, ph / 2);
   ctx.fillStyle = "#0b3d20";
@@ -75,8 +75,22 @@ export function drawFareCard(data: FareCardData): HTMLCanvasElement {
   ctx.lineWidth = 2;
   ctx.stroke();
   ctx.fillStyle = "#4ade80";
-  ctx.font = "600 35px 'Hind Siliguri','Noto Sans Bengali',sans-serif";
-  ctx.fillText("cryptowebbuild.github.io/varathik", W / 2, py + 49);
+  ctx.font = "600 34px 'Hind Siliguri','Noto Sans Bengali',sans-serif";
+  ctx.fillText("cryptowebbuild.github.io/varathik", px + pw / 2, py + 47);
+
+  // QR কোড — স্ক্যান করলেই অ্যাপ খুলবে
+  try {
+    const qr = new Image();
+    qr.src = import.meta.env.BASE_URL + "qr.svg";
+    await qr.decode();
+    ctx.beginPath();
+    ctx.roundRect(884, 1184, 156, 156, 18);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+    ctx.drawImage(qr, 898, 1198, 128, 128);
+  } catch {
+    /* QR লোড না হলেও কার্ড যাবে */
+  }
 
   return canvas;
 }
@@ -97,7 +111,7 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: num
 }
 
 export async function shareFareCard(data: FareCardData) {
-  const canvas = drawFareCard(data);
+  const canvas = await drawFareCard(data);
   const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
   if (!blob) return;
   const file = new File([blob], "varathik-fare-card.png", { type: "image/png" });
