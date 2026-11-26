@@ -1,1 +1,1 @@
-varathik v6.2 - 2026-11-26 (bugfix + premium polish + readable code pass)
+varathik v7 - 2026-11-26 (SEO blog guides + sitemap + route URL params)
