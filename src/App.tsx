@@ -225,10 +225,13 @@ export default function App() {
         <div className="hero-inner">
           <div className="hero-text">
             <div className="hero-tools">
-              <button type="button" className="tool-btn" aria-label={L ? "ডার্ক মোড" : "Dark mode"} onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? "☀️" : "🌙"}</button>
+              <button type="button" className="tool-btn" aria-label={L ? "ডার্ক মোড" : "Dark mode"} onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg> : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>}</button>
               <button type="button" className="tool-btn lang-btn" aria-label="Language" onClick={() => setLang(L ? "en" : "bn")}>{L ? "EN" : "বাংলা"}</button>
             </div>
-            <div className="logo">{L ? "ভাড়াঠিক?" : "VaraThik?"}</div>
+            <div className="logo">
+              <img className="logo-mark" src={import.meta.env.BASE_URL + "icon.svg"} alt="" />
+              <span>{L ? "ভাড়াঠিক" : "VaraThik"}<span className="q">?</span></span>
+            </div>
             <p className="tagline">{L ? "ঠকবেন না, জেনে উঠুন — বাস · মেট্রো · CNG · রিকশার সঠিক ভাড়া এক জায়গায়" : "Know before you ride — the right fare for bus, metro, CNG & rickshaw in one place"}</p>
             <div className="stats">
               <div><strong>{PLACES.length}{L ? "টি" : ""}</strong><span>{L ? "এলাকা" : "areas"}</span></div>
@@ -256,7 +259,7 @@ export default function App() {
             <PlacePicker label={L ? "কোথায় যাবেন" : "To"} value={to} onChange={setTo} exclude={from} lang={lang} />
           </div>
           <div className="chips">
-            <button type="button" className={"fav-btn" + (isFav ? " on" : "")} onClick={toggleFav}>{isFav ? (L ? "⭐ প্রিয় রুট" : "⭐ Favourite") : (L ? "☆ প্রিয় করুন" : "☆ Save route")}</button>
+            <button type="button" className={"fav-btn" + (isFav ? " on" : "")} onClick={toggleFav}>{isFav ? (L ? "★ প্রিয় রুট" : "★ Favourite") : (L ? "☆ প্রিয় করুন" : "☆ Save route")}</button>
             {POPULAR.map(([a, b]) => (
               <button
                 key={a + b}
@@ -274,7 +277,7 @@ export default function App() {
           {(favs.length > 0 || recent.some((k) => k !== pairKey)) && (
             <div className="chips sub">
               {favs.map((k) => { const [a, b] = k.split(">"); return (
-                <button key={"f" + k} type="button" onClick={() => { setFrom(a); setTo(b); setTab("fare"); }}>⭐ {nm(findPlace(a))} → {nm(findPlace(b))}</button> ); })}
+                <button key={"f" + k} type="button" onClick={() => { setFrom(a); setTo(b); setTab("fare"); }}>★ {nm(findPlace(a))} → {nm(findPlace(b))}</button> ); })}
               {recent.filter((k) => k !== pairKey && !favs.includes(k)).slice(0, 3).map((k) => { const [a, b] = k.split(">"); return (
                 <button key={"r" + k} type="button" onClick={() => { setFrom(a); setTo(b); setTab("fare"); }}>🕘 {nm(findPlace(a))} → {nm(findPlace(b))}</button> ); })}
             </div>
@@ -294,7 +297,7 @@ export default function App() {
         {/* ===== ভোটের আহ্বান ব্যানার ===== */}
         {!voteX && (
           <div className="vote-banner">
-            <span>{L ? "❤️ অ্যাপটা কাজে লাগছে? Arohon 'Build for Bangladesh'-এ ভাড়াঠিক? টপ-৩-তে আছে — একটা ভোট দিয়ে টপ-২-এ তুলুন!" : "❤️ Finding this useful? VaraThik is in the top 3 on the Arohon 'Build for Bangladesh' leaderboard — one vote lifts it into the top 2!"}</span>
+            <span>{L ? "অ্যাপটা কাজে লাগছে? Arohon 'Build for Bangladesh'-এ ভাড়াঠিক? টপ-৩-তে আছে — একটা ভোট দিয়ে টপ-২-এ তুলুন!" : "Finding this useful? VaraThik is in the top 3 on the Arohon 'Build for Bangladesh' leaderboard — one vote lifts it into the top 2!"}</span>
             <a href="https://arohon.co/challenges/build-for-bangladesh" target="_blank" rel="noreferrer">{L ? "🗳️ ভোট দিন" : "🗳️ Vote now"}</a>
             <button type="button" aria-label={L ? "বন্ধ করুন" : "Close"} onClick={() => { setVoteX(true); store.set("vt-vote-x", "1"); }}>×</button>
           </div>
@@ -313,7 +316,7 @@ export default function App() {
                 {results.some((r) => r.mode === "metro") && (
                   <label className="card-toggle">
                     <input type="checkbox" checked={metroCard} onChange={(e) => setMetroCard(e.currentTarget.checked)} />
-                    <span>{L ? "💳 MRT Pass / Rapid Pass আছে — মেট্রো ভাড়ায় ১০% ছাড় দেখান" : "💳 I have an MRT / Rapid Pass — show the 10% metro discount"}</span>
+                    <span>{L ? "MRT Pass / Rapid Pass আছে — মেট্রো ভাড়ায় ১০% ছাড় দেখান" : "I have an MRT / Rapid Pass — show the 10% metro discount"}</span>
                   </label>
                 )}
                 <div className="cards-grid">
@@ -328,7 +331,7 @@ export default function App() {
                   };
                   return (
                   <article key={r.mode} className={"mode-card" + (r === cheapest ? " cheapest" : "")}>
-                    {r === cheapest && <span className="best-pill">⭐ {L ? "সবচেয়ে সস্তা" : "Cheapest"}</span>}
+                    {r === cheapest && <span className="best-pill">{L ? "সবচেয়ে সস্তা" : "Cheapest"}</span>}
                     <div className="mode-head">
                       <span className="mode-icon">{MODE_ICON[r.mode]}</span>
                       <div>
@@ -418,7 +421,7 @@ export default function App() {
                 </div>
                 {cheapest && (
                   <div className="monthly">
-                    <strong>{L ? "🧮 প্রতিদিন এই রুটে যাতায়াত করলে" : "🧮 If you commute this route daily"}</strong>
+                    <strong>{L ? "প্রতিদিন এই রুটে যাতায়াত করলে" : "If you commute this route daily"}</strong>
                     <p>
                       {L ? cheapest.titleBn : cheapest.titleEn}: {L ? `একমুখী ৳${cheapest.fare} · যাওয়া-আসা ৳${cheapest.fare * 2}/দিন · মাসে (২৬ কর্মদিবস)` : `one-way ৳${cheapest.fare} · return ৳${cheapest.fare * 2}/day · monthly (26 workdays)`} <b>৳{cheapest.fare * 52}</b>
                     </p>
@@ -455,10 +458,10 @@ export default function App() {
           <section className="check">
             <h2>{nm(fromPlace)} → {nm(toPlace)} — {L ? "কত নেওয়া উচিত ছিল?" : "What should it have cost?"}</h2>
             <div className="check-modes">
-              <button className={chargedMode === "bus" ? "on" : ""} onClick={() => setChargedMode("bus")}>{L ? "🚌 বাস" : "🚌 Bus"}</button>
-              <button className={chargedMode === "cng" ? "on" : ""} onClick={() => setChargedMode("cng")}>{L ? "🛺 CNG (মিটার)" : "🛺 CNG (Meter)"}</button>
-              {metroCheck && <button className={chargedMode === "metro" ? "on" : ""} onClick={() => setChargedMode("metro")}>{L ? "🚇 মেট্রো" : "🚇 Metro"}</button>}
-              <button className={chargedMode === "rickshaw" ? "on" : ""} onClick={() => setChargedMode("rickshaw")}>{L ? "🚲 রিকশা" : "🚲 Rickshaw"}</button>
+              <button className={chargedMode === "bus" ? "on" : ""} onClick={() => setChargedMode("bus")}>{L ? "বাস" : "Bus"}</button>
+              <button className={chargedMode === "cng" ? "on" : ""} onClick={() => setChargedMode("cng")}>{L ? "CNG (মিটার)" : "CNG (Meter)"}</button>
+              {metroCheck && <button className={chargedMode === "metro" ? "on" : ""} onClick={() => setChargedMode("metro")}>{L ? "মেট্রো" : "Metro"}</button>}
+              <button className={chargedMode === "rickshaw" ? "on" : ""} onClick={() => setChargedMode("rickshaw")}>{L ? "রিকশা" : "Rickshaw"}</button>
             </div>
             <label className="charged-label">
               {L ? "আপনার কাছ থেকে কত টাকা নিয়েছে?" : "How much were you charged?"}
@@ -599,7 +602,7 @@ export default function App() {
           </div>
         </div>
         <p>{L ? "ভাড়াঠিক? — Build for Bangladesh চ্যালেঞ্জের জন্য তৈরি · ডেটা: BRTA, DMTCL, OpenStreetMap" : "VaraThik — built for the Build for Bangladesh challenge · Data: BRTA, DMTCL, OpenStreetMap"}</p>
-        <p><a href={import.meta.env.BASE_URL + "blog/"}>{L ? "📚 ভাড়া গাইড ও ব্লগ — বাস, মেট্রো, CNG, রিকশার পূর্ণ চার্ট" : "📚 Fare guides & blog — full bus, metro, CNG & rickshaw charts"}</a></p>
+        <p><a href={import.meta.env.BASE_URL + "blog/"}>{L ? "ভাড়া গাইড ও ব্লগ — বাস, মেট্রো, CNG, রিকশার পূর্ণ চার্ট" : "Fare guides & blog — full bus, metro, CNG & rickshaw charts"}</a></p>
         <p className="places-count">{L ? `এখন ${PLACES.length}টি এলাকা · ${BUS_ROUTES.length}টি বাস করিডর · ঢাকা শহর · ` : `Now ${PLACES.length} areas · ${BUS_ROUTES.length} bus corridors · Dhaka · `}<a href="https://github.com/cryptowebbuild/varathik" target="_blank" rel="noreferrer">{L ? "GitHub-এ কোড দেখুন" : "View the code on GitHub"}</a></p>
         <a className="credit" href="https://cryptowebbuild.com/" target="_blank" rel="noreferrer">
           <span className="credit-top">{L ? "⚡ তৈরি ও পরিচালনায়" : "⚡ Built & run by"}</span>
