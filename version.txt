@@ -1,1 +1,1 @@
-varathik v7.3 - 2026-11-26 (premium brand refresh: Baloo Da 2, new logo mark, icons, OG)
+varathik v7.4 - 2026-11-27 (bug fixes F1/F5/F6/F7 + v7.3 premium brand refresh)
