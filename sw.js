@@ -1,6 +1,6 @@
-// ভাড়াঠিক? — অফলাইন ক্যাশ (স্বয়ংক্রিয়ভাবে তৈরি, বিল্ড 412a4eaa)
-const CACHE = "varathik-412a4eaa";
-const PRECACHE = ["./","./index.html","./manifest.webmanifest","./icon.svg","./qr.svg","./assets/index-CMPlD-rM.css","./assets/index-CnolfQU1.js"];
+// ভাড়াঠিক? — অফলাইন ক্যাশ (স্বয়ংক্রিয়ভাবে তৈরি, বিল্ড faebf48d)
+const CACHE = "varathik-faebf48d";
+const PRECACHE = ["./","./index.html","./manifest.webmanifest","./icon.svg","./qr.svg","./assets/index-hm119slQ.js","./assets/index-wnivfhqp.css"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)));
   self.skipWaiting();
