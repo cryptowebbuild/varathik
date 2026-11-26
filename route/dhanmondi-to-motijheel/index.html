@@ -32,6 +32,12 @@ th, td { border-bottom:1px solid var(--border); padding:7px 10px; text-align:lef
 th { background:var(--g100); }
 .note { color:var(--muted); font-size:14.5px; }
 .appcta { display:block; text-align:center; background:linear-gradient(120deg,var(--g600),#22c55e); color:#fff; text-decoration:none; font-weight:800; font-size:18px; padding:15px; border-radius:14px; margin:26px 0; box-shadow:0 8px 20px rgba(22,163,74,.35); }
+.sticky-cta { display:none; }
+.bar { height:6px; border-radius:3px; background:linear-gradient(90deg,var(--g600),#4ade80); margin-top:5px; min-width:12px; }
+@media (max-width: 640px) {
+  body { padding-bottom:78px; }
+  .sticky-cta { display:block; position:fixed; left:12px; right:12px; bottom:12px; z-index:50; text-align:center; background:linear-gradient(120deg,var(--g600),#22c55e); color:#fff; text-decoration:none; font-weight:800; font-size:16.5px; padding:14px; border-radius:999px; box-shadow:0 10px 24px rgba(5,46,22,.4); }
+}
 .faq { background:#fff; border:1.5px solid var(--border); border-radius:12px; padding:6px 18px; margin:12px 0; }
 .faq h3 { margin:14px 0 2px; font-size:17px; }
 .faq p { margin:0 0 14px; color:#33473a; }
@@ -53,7 +59,7 @@ footer a { color:var(--g600); }
 <h1>ধানমন্ডি থেকে মতিঝিল ভাড়া: বাস, মেট্রো, CNG ও রিকশায় কত লাগবে?</h1>
 <p><strong>ধানমন্ডি → মতিঝিল</strong> — সবচেয়ে সস্তা অপশন <strong>লোকাল বাস ৳20</strong>। নিচে প্রতিটা যানের ভাড়া, দূরত্ব ও আনুমানিক সময় সরকারি রেটে হিসাব করে দেওয়া হলো।</p>
 <h2>যান অনুযায়ী ভাড়া</h2>
-<div class="tw"><table><thead><tr><th>যানবাহন</th><th>ভাড়া</th><th>দূরত্ব</th><th>আনুমানিক সময়</th></tr></thead><tbody><tr><td>লোকাল বাস</td><td>৳20</td><td>7.5 কিমি</td><td>~48 মিনিট</td></tr><tr><td>CNG অটোরিকশা (মিটার)</td><td>৳90 (অপেক্ষা/জ্যামের সময় ছাড়া)</td><td>6.2 কিমি</td><td>~30 মিনিট</td></tr><tr><td>রিকশা</td><td>৳180 (আনুমানিক ৳180–265)</td><td>6.2 কিমি</td><td>~41 মিনিট</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>যানবাহন</th><th>ভাড়া</th><th>দূরত্ব</th><th>আনুমানিক সময়</th></tr></thead><tbody><tr><td>লোকাল বাস</td><td>৳20<div class="bar" style="width:11%"></div></td><td>7.5 কিমি</td><td>~48 মিনিট</td></tr><tr><td>CNG অটোরিকশা (মিটার)</td><td>৳90 (অপেক্ষা/জ্যামের সময় ছাড়া)<div class="bar" style="width:50%"></div></td><td>6.2 কিমি</td><td>~30 মিনিট</td></tr><tr><td>রিকশা</td><td>৳180 (আনুমানিক ৳180–265)<div class="bar" style="width:100%"></div></td><td>6.2 কিমি</td><td>~41 মিনিট</td></tr></tbody></table></div>
 <h2>সরাসরি বাস</h2><p><strong>মোহাম্মদপুর — মতিঝিল করিডর</strong> (যেমন: মালঞ্চ, প্রজাপতি) — ভাড়া ৳20, দূরত্ব 7.5 কিমি<br/><span class="note">স্টপ: ধানমন্ডি → সায়েন্স ল্যাব → নিউ মার্কেট → ঢাকা বিশ্ববিদ্যালয় → শাহবাগ → প্রেস ক্লাব / সচিবালয় → মতিঝিল</span></p>
 <p><strong>গাবতলী — মতিঝিল করিডর (মিরপুর রোড)</strong> (যেমন: দিশারী, বাহন) — ভাড়া ৳22, দূরত্ব 8.1 কিমি<br/><span class="note">স্টপ: ধানমন্ডি → সায়েন্স ল্যাব → নিউ মার্কেট → ঢাকা বিশ্ববিদ্যালয় → শাহবাগ → প্রেস ক্লাব / সচিবালয় → পল্টন → মতিঝিল</span></p>
 
@@ -73,5 +79,6 @@ footer a { color:var(--g600); }
 <a class="card" href="https://cryptowebbuild.github.io/varathik/route/uttara-to-farmgate/"><strong>উত্তরা → ফার্মগেট ভাড়া</strong><span>সবচেয়ে সস্তা: লোকাল বাস ৳42</span></a>
 </main>
 <footer>ভাড়াঠিক? — BRTA ও DMTCL-এর প্রকাশিত সরকারি রেট থেকে হিসাব করা ভাড়া। <a href="https://cryptowebbuild.github.io/varathik/">অ্যাপে ফিরে যান</a> · তৈরি: <a href="https://cryptowebbuild.com/">CryptoWebBuild</a></footer>
+<a class="sticky-cta" href="https://cryptowebbuild.github.io/varathik/?from=dhanmondi&amp;to=motijheel">🧮 অ্যাপে ধানমন্ডি → মতিঝিল ভাড়া দেখুন</a>
 </body>
 </html>
