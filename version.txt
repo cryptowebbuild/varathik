@@ -1,1 +1,1 @@
-varathik v5 - 2026-11-25 (bugfix release)
+varathik v6 - 2026-11-26 (premium release: 83 areas, 30 corridors, dark mode, EN UI, transfers, vote banner)
