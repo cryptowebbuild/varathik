@@ -32,6 +32,12 @@ th, td { border-bottom:1px solid var(--border); padding:7px 10px; text-align:lef
 th { background:var(--g100); }
 .note { color:var(--muted); font-size:14.5px; }
 .appcta { display:block; text-align:center; background:linear-gradient(120deg,var(--g600),#22c55e); color:#fff; text-decoration:none; font-weight:800; font-size:18px; padding:15px; border-radius:14px; margin:26px 0; box-shadow:0 8px 20px rgba(22,163,74,.35); }
+.sticky-cta { display:none; }
+.bar { height:6px; border-radius:3px; background:linear-gradient(90deg,var(--g600),#4ade80); margin-top:5px; min-width:12px; }
+@media (max-width: 640px) {
+  body { padding-bottom:78px; }
+  .sticky-cta { display:block; position:fixed; left:12px; right:12px; bottom:12px; z-index:50; text-align:center; background:linear-gradient(120deg,var(--g600),#22c55e); color:#fff; text-decoration:none; font-weight:800; font-size:16.5px; padding:14px; border-radius:999px; box-shadow:0 10px 24px rgba(5,46,22,.4); }
+}
 .faq { background:#fff; border:1.5px solid var(--border); border-radius:12px; padding:6px 18px; margin:12px 0; }
 .faq h3 { margin:14px 0 2px; font-size:17px; }
 .faq p { margin:0 0 14px; color:#33473a; }
@@ -53,7 +59,7 @@ footer a { color:var(--g600); }
 <h1>ডেমরা থেকে মতিঝিল ভাড়া: বাস, মেট্রো, CNG ও রিকশায় কত লাগবে?</h1>
 <p><strong>ডেমরা → মতিঝিল</strong> — সবচেয়ে সস্তা অপশন <strong>লোকাল বাস ৳26</strong>। নিচে প্রতিটা যানের ভাড়া, দূরত্ব ও আনুমানিক সময় সরকারি রেটে হিসাব করে দেওয়া হলো।</p>
 <h2>যান অনুযায়ী ভাড়া</h2>
-<div class="tw"><table><thead><tr><th>যানবাহন</th><th>ভাড়া</th><th>দূরত্ব</th><th>আনুমানিক সময়</th></tr></thead><tbody><tr><td>লোকাল বাস</td><td>৳26</td><td>9.5 কিমি</td><td>~58 মিনিট</td></tr><tr><td>CNG অটোরিকশা (মিটার)</td><td>৳130 (অপেক্ষা/জ্যামের সময় ছাড়া)</td><td>9.5 কিমি</td><td>~43 মিনিট</td></tr><tr><td>রিকশা</td><td>৳265 (আনুমানিক ৳265–390)</td><td>9.5 কিমি</td><td>~63 মিনিট</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>যানবাহন</th><th>ভাড়া</th><th>দূরত্ব</th><th>আনুমানিক সময়</th></tr></thead><tbody><tr><td>লোকাল বাস</td><td>৳26<div class="bar" style="width:10%"></div></td><td>9.5 কিমি</td><td>~58 মিনিট</td></tr><tr><td>CNG অটোরিকশা (মিটার)</td><td>৳130 (অপেক্ষা/জ্যামের সময় ছাড়া)<div class="bar" style="width:49%"></div></td><td>9.5 কিমি</td><td>~43 মিনিট</td></tr><tr><td>রিকশা</td><td>৳265 (আনুমানিক ৳265–390)<div class="bar" style="width:100%"></div></td><td>9.5 কিমি</td><td>~63 মিনিট</td></tr></tbody></table></div>
 
 <h2>বদলি করে বাসে</h2><p>সরাসরি বাস নেই। <strong>যাত্রাবাড়ী — ডেমরা লিংক</strong>-এ সায়েদাবাদ পর্যন্ত (৳23), তারপর <strong>খিলগাঁও — মতিঝিল — সায়েদাবাদ লিংক</strong>-এ মতিঝিল (৳10) — মোট <strong>৳33</strong> (দুটি আলাদা টিকিট)।</p>
 <a class="appcta" href="https://cryptowebbuild.github.io/varathik/?from=demra&amp;to=motijheel">🧮 অ্যাপে ডেমরা → মতিঝিল ভাড়া কার্ডসহ দেখুন →</a>
@@ -72,5 +78,6 @@ footer a { color:var(--g600); }
 <a class="card" href="https://cryptowebbuild.github.io/varathik/route/mohammadpur-to-motijheel/"><strong>মোহাম্মদপুর → মতিঝিল ভাড়া</strong><span>সবচেয়ে সস্তা: লোকাল বাস ৳28</span></a>
 </main>
 <footer>ভাড়াঠিক? — BRTA ও DMTCL-এর প্রকাশিত সরকারি রেট থেকে হিসাব করা ভাড়া। <a href="https://cryptowebbuild.github.io/varathik/">অ্যাপে ফিরে যান</a> · তৈরি: <a href="https://cryptowebbuild.com/">CryptoWebBuild</a></footer>
+<a class="sticky-cta" href="https://cryptowebbuild.github.io/varathik/?from=demra&amp;to=motijheel">🧮 অ্যাপে ডেমরা → মতিঝিল ভাড়া দেখুন</a>
 </body>
 </html>
