@@ -19,7 +19,10 @@ export function haversineKm(a: Place, b: Place): number {
 
 /** সড়কপথের আনুমানিক দূরত্ব — ঢাকার রাস্তা সরলরেখার চেয়ে ~৩০% লম্বা */
 export function roadKm(fromId: string, toId: string): number {
-  const km = haversineKm(findPlace(fromId), findPlace(toId)) * 1.3;
+  const a = findPlace(fromId);
+  const b = findPlace(toId);
+  if (!a || !b) return 0; // অবৈধ id — ভুল জায়গার দূরত্ব দেখানো যাবে না
+  const km = haversineKm(a, b) * 1.3;
   return Math.round(km * 10) / 10;
 }
 
@@ -30,10 +33,12 @@ export function busFareForKm(km: number): number {
 /** বাসের দূরত্বের একটাই সূত্র: সরাসরি করিডর থাকলে তার km, নাহলে সড়ক-দূরত্ব */
 export function busKmFor(fromId: string, toId: string): number {
   const buses = findDirectBuses(fromId, toId);
+  // findDirectBuses দূরত্বের ক্রমে সাজিয়ে দেয়, তাই buses[0]-ই সবচেয়ে ছোট দূরত্বের রুট
   return buses.length > 0 ? buses[0].km : roadKm(fromId, toId);
 }
 
-/** বাসে ভাড়া সাধারণত ৳৫-এর রাউন্ডে নেওয়া হয় */
+/** ৳৫-এর রাউন্ড — চেকারের সহনশীলতা আর রিকশার বাজার-রেঞ্জে ব্যবহৃত।
+ *  (বাস ভাড়া এতে রাউন্ড হয় না — BRTA চার্টের ভাড়া পুরো টাকায়, যেমন ৳৩৩।) */
 export function round5(n: number): number {
   return Math.round(n / 5) * 5;
 }
@@ -48,7 +53,6 @@ export function cngFareForKm(km: number, waitingMin = 0): number {
 
 /** রিকশার কোনো সরকারি রেট নেই — বাজারভিত্তিক আনুমানিক রেঞ্জ */
 export function rickshawRangeForKm(km: number): { low: number; high: number } {
-  const round5 = (n: number) => Math.round(n / 5) * 5;
   return {
     low: Math.max(30, round5(20 + km * 26)),
     high: Math.max(40, round5(30 + km * 38)),
@@ -73,13 +77,14 @@ export interface ModeResult {
 export function computeResults(fromId: string, toId: string): ModeResult[] {
   const from = findPlace(fromId);
   const to = findPlace(toId);
+  if (!from || !to) return []; // অবৈধ id — ভুল জায়গার ভাড়া বানিয়ে দেখানো যাবে না
   const dist = roadKm(fromId, toId);
   const results: ModeResult[] = [];
 
   // বাস — সরাসরি রুট পেলে রুট-দূরত্বে, না পেলে সড়ক-দূরত্বে BRTA রেট
   const buses = findDirectBuses(fromId, toId);
   if (buses.length > 0) {
-    const km = buses[0].km;
+    const km = busKmFor(fromId, toId); // দূরত্বের একটাই সূত্র — busKmFor
     results.push({
       mode: "bus",
       titleBn: "লোকাল বাস",
@@ -184,6 +189,7 @@ export function transferFareFor(fromId: string, toId: string): TransferFare | nu
   const t = findTransferRoute(fromId, toId);
   if (!t) return null;
   const stop = findPlace(t.transferStopId);
+  if (!stop) return null;
   const fareFirst = busFareForKm(t.kmFirst);
   const fareSecond = busFareForKm(t.kmSecond);
   return {
