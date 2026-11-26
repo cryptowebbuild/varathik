@@ -1,1 +1,1 @@
-varathik v6.1 - 2026-11-26 (WhatsApp share button: official logo + Share label)
+varathik v6.2 - 2026-11-26 (bugfix + premium polish + readable code pass)
