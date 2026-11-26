@@ -73,6 +73,13 @@ for (let km = 0.5; km < 30; km += 0.5) {
   if (r.low > r.high) problems.push(`rickshaw low>high at ${km}`);
 }
 
+// ---------- রিগ্রেশন: F1/F2/F3 (বাইরের বাগ-রিপোর্ট যাচাইয়ের পর যোগ) ----------
+if (findPlace("garbage-id") !== undefined) problems.push("F1: findPlace must return undefined for invalid id");
+if (computeResults("garbage-id", "motijheel").length !== 0) problems.push("F1: computeResults must be empty for invalid id");
+if (computeResults("mirpur-6", "mirpur-10").some((m) => m.mode === "metro")) problems.push("F2: same-station pair must not invent a metro fare");
+if (cngFareForKm(13.3, 10) !== 196) problems.push("F3: CNG waiting minutes must change the fare (13.3km + 10min = 196)");
+if (busKmFor("mirpur-10", "motijheel") !== 12.1) problems.push("anchor: mirpur-10->motijheel bus km must stay 12.1");
+
 console.log(`places=${PLACES.length} routes=${BUS_ROUTES.length} pairs=${pairs} metroPairs=${withMetro} transferOnlyPairs=${withTransferOnly}`);
 console.log(`PROBLEMS (${problems.length}):`);
 for (const p of problems.slice(0, 40)) console.log("  ✗", p);
