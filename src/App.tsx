@@ -114,8 +114,19 @@ function PlacePicker({
 }
 
 export default function App() {
-  const [from, setFrom] = useState("mirpur-10");
-  const [to, setTo] = useState("motijheel");
+  // ব্লগ/শেয়ার লিংক থেকে সরাসরি রুট খোলা যায়: ?from=mirpur-10&to=motijheel&lang=en
+  // ভুল বা অজানা আইডি এলে নিরাপদ ডিফল্টে ফিরে যাওয়া হয়।
+  const params = new URLSearchParams(window.location.search);
+  const paramPlace = (key: string, fallback: string) => {
+    const v = params.get(key);
+    return v && PLACES.some((pl) => pl.id === v) ? v : fallback;
+  };
+  const [from, setFrom] = useState(() => paramPlace("from", "mirpur-10"));
+  const [to, setTo] = useState(() => {
+    const f = paramPlace("from", "mirpur-10");
+    const t = paramPlace("to", "motijheel");
+    return t === f ? (f === "motijheel" ? "gulistan" : "motijheel") : t;
+  });
   const [tab, setTab] = useState<"fare" | "check" | "rates">("fare");
   const [chargedMode, setChargedMode] = useState<"bus" | "cng" | "metro" | "rickshaw">("bus");
   const [charged, setCharged] = useState("");
@@ -123,7 +134,7 @@ export default function App() {
   const [metroCard, setMetroCard] = useState(false);
   const [chartRoute, setChartRoute] = useState<string | null>(null);
   const cardBusy = useRef(false);
-  const [lang, setLang] = useState<Lang>(() => (store.get("vt-lang") === "en" ? "en" : "bn"));
+  const [lang, setLang] = useState<Lang>(() => (params.get("lang") === "en" || store.get("vt-lang") === "en" ? "en" : "bn"));
   const [theme, setTheme] = useState(() => (store.get("vt-theme") === "dark" ? "dark" : "light"));
   const [favs, setFavs] = useState<string[]>(() => store.getList("vt-favs"));
   const [recent, setRecent] = useState<string[]>(() => store.getList("vt-recent"));
@@ -277,7 +288,7 @@ export default function App() {
         {/* ===== ভোটের আহ্বান ব্যানার ===== */}
         {!voteX && (
           <div className="vote-banner">
-            <span>{L ? "❤️ অ্যাপটা কাজে লাগছে? Arohon 'Build for Bangladesh'-এ ভাড়াঠিক? লিডারবোর্ডে ২ নম্বরে — একটা ভোট দিয়ে এগিয়ে দিন!" : "❤️ Finding this useful? VaraThik is #2 on the Arohon 'Build for Bangladesh' leaderboard — one vote takes it further!"}</span>
+            <span>{L ? "❤️ অ্যাপটা কাজে লাগছে? Arohon 'Build for Bangladesh'-এ ভাড়াঠিক? টপ-৩-তে আছে — একটা ভোট দিয়ে টপ-২-এ তুলুন!" : "❤️ Finding this useful? VaraThik is in the top 3 on the Arohon 'Build for Bangladesh' leaderboard — one vote lifts it into the top 2!"}</span>
             <a href="https://arohon.co/challenges/build-for-bangladesh" target="_blank" rel="noreferrer">{L ? "🗳️ ভোট দিন" : "🗳️ Vote now"}</a>
             <button type="button" aria-label={L ? "বন্ধ করুন" : "Close"} onClick={() => { setVoteX(true); store.set("vt-vote-x", "1"); }}>×</button>
           </div>
@@ -582,6 +593,7 @@ export default function App() {
           </div>
         </div>
         <p>{L ? "ভাড়াঠিক? — Build for Bangladesh চ্যালেঞ্জের জন্য তৈরি · ডেটা: BRTA, DMTCL, OpenStreetMap" : "VaraThik — built for the Build for Bangladesh challenge · Data: BRTA, DMTCL, OpenStreetMap"}</p>
+        <p><a href={import.meta.env.BASE_URL + "blog/"}>{L ? "📚 ভাড়া গাইড ও ব্লগ — বাস, মেট্রো, CNG, রিকশার পূর্ণ চার্ট" : "📚 Fare guides & blog — full bus, metro, CNG & rickshaw charts"}</a></p>
         <p className="places-count">{L ? `এখন ${PLACES.length}টি এলাকা · ${BUS_ROUTES.length}টি বাস করিডর · ঢাকা শহর · ` : `Now ${PLACES.length} areas · ${BUS_ROUTES.length} bus corridors · Dhaka · `}<a href="https://github.com/cryptowebbuild/varathik" target="_blank" rel="noreferrer">{L ? "GitHub-এ কোড দেখুন" : "View the code on GitHub"}</a></p>
         <a className="credit" href="https://cryptowebbuild.com/" target="_blank" rel="noreferrer">
           <span className="credit-top">{L ? "⚡ তৈরি ও পরিচালনায়" : "⚡ Built & run by"}</span>
