@@ -88,7 +88,7 @@ try {
 
   // ৫) থিম টগল
   const themeBefore = await ev(`document.documentElement.dataset.theme || ''`);
-  await ev(`[...document.querySelectorAll('button')].find(b => /🌙|☀️/.test(b.textContent)).click()`);
+  await ev(`document.querySelector('button[aria-label="Dark mode"], button[aria-label="ডার্ক মোড"]').click()`);
   await sleep(300);
   const themeAfter = await ev(`document.documentElement.dataset.theme || ''`);
   check("theme toggle flips dataset.theme", themeBefore !== themeAfter, `${themeBefore}→${themeAfter}`);
