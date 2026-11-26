@@ -188,6 +188,12 @@ th, td { border-bottom:1px solid var(--border); padding:7px 10px; text-align:lef
 th { background:var(--g100); }
 .note { color:var(--muted); font-size:14.5px; }
 .appcta { display:block; text-align:center; background:linear-gradient(120deg,var(--g600),#22c55e); color:#fff; text-decoration:none; font-weight:800; font-size:18px; padding:15px; border-radius:14px; margin:26px 0; box-shadow:0 8px 20px rgba(22,163,74,.35); }
+.sticky-cta { display:none; }
+.bar { height:6px; border-radius:3px; background:linear-gradient(90deg,var(--g600),#4ade80); margin-top:5px; min-width:12px; }
+@media (max-width: 640px) {
+  body { padding-bottom:78px; }
+  .sticky-cta { display:block; position:fixed; left:12px; right:12px; bottom:12px; z-index:50; text-align:center; background:linear-gradient(120deg,var(--g600),#22c55e); color:#fff; text-decoration:none; font-weight:800; font-size:16.5px; padding:14px; border-radius:999px; box-shadow:0 10px 24px rgba(5,46,22,.4); }
+}
 .faq { background:#fff; border:1.5px solid var(--border); border-radius:12px; padding:6px 18px; margin:12px 0; }
 .faq h3 { margin:14px 0 2px; font-size:17px; }
 .faq p { margin:0 0 14px; color:#33473a; }
@@ -246,6 +252,7 @@ ${a.faq.map(([q, ans]) => `<h3>${q}</h3><p>${ans}</p>`).join("\n")}
 ${ARTICLES.filter((x) => x.slug !== a.slug).map((x) => `<a class="card" href="${SITE}/blog/${x.slug}/"><strong>${x.title}</strong><span>${x.description}</span></a>`).join("\n")}
 </main>
 <footer>ভাড়াঠিক? — BRTA ও DMTCL-এর প্রকাশিত সরকারি রেট থেকে হিসাব করা ভাড়া। <a href="${SITE}/">অ্যাপে ফিরে যান</a> · তৈরি: <a href="https://cryptowebbuild.com/">CryptoWebBuild</a></footer>
+<a class="sticky-cta" href="${SITE}/?from=${a.cta.from}&amp;to=${a.cta.to}">🧮 অ্যাপে ভাড়া দেখুন</a>
 </body>
 </html>`;
 };
@@ -295,7 +302,7 @@ const routePage = (r) => {
 <h1>${title}</h1>
 <p><strong>${r.fromBn} → ${r.toBn}</strong> — সবচেয়ে সস্তা অপশন <strong>${r.cheapest.titleBn} ৳${r.cheapest.fare}</strong>। নিচে প্রতিটা যানের ভাড়া, দূরত্ব ও আনুমানিক সময় সরকারি রেটে হিসাব করে দেওয়া হলো।</p>
 <h2>যান অনুযায়ী ভাড়া</h2>
-${table(["যানবাহন", "ভাড়া", "দূরত্ব", "আনুমানিক সময়"], r.modes.map((m) => [m.titleBn, `৳${m.fare}${m.fareNote ? ` (${m.fareNote})` : ""}`, `${m.km} কিমি`, `~${m.minutes} মিনিট`]))}
+${table(["যানবাহন", "ভাড়া", "দূরত্ব", "আনুমানিক সময়"], r.modes.map((m) => [m.titleBn, `৳${m.fare}${m.fareNote ? ` (${m.fareNote})` : ""}<div class="bar" style="width:${Math.max(6, Math.round((m.fare / Math.max(...r.modes.map((x) => x.fare))) * 100))}%"></div>`, `${m.km} কিমি`, `~${m.minutes} মিনিট`]))}
 ${r.buses.length ? `<h2>সরাসরি বাস</h2>${r.buses.map((b) => `<p><strong>${b.nameBn}</strong>${b.examples.length ? ` (যেমন: ${b.examples.join(", ")})` : ""} — ভাড়া ৳${b.fare}, দূরত্ব ${b.km} কিমি<br/><span class="note">স্টপ: ${b.stopsBn.join(" → ")}</span></p>`).join("\n")}` : ""}
 ${r.transfer && !r.buses.length ? `<h2>বদলি করে বাসে</h2><p>সরাসরি বাস নেই। <strong>${r.transfer.firstRouteBn}</strong>-এ ${r.transfer.transferBn} পর্যন্ত (৳${r.transfer.fareFirst}), তারপর <strong>${r.transfer.secondRouteBn}</strong>-এ ${r.toBn} (৳${r.transfer.fareSecond}) — মোট <strong>৳${r.transfer.totalFare}</strong> (দুটি আলাদা টিকিট)।</p>` : ""}
 <a class="appcta" href="${SITE}/?from=${r.fromId}&amp;to=${r.toId}">🧮 অ্যাপে ${r.fromBn} → ${r.toBn} ভাড়া কার্ডসহ দেখুন →</a>
@@ -307,6 +314,7 @@ ${faq.map(([q, ans]) => `<h3>${q}</h3><p>${ans}</p>`).join("\n")}
 ${ROUTES.filter((x) => x.slug !== r.slug).slice(0, 6).map((x) => `<a class="card" href="${SITE}/route/${x.slug}/"><strong>${x.fromBn} → ${x.toBn} ভাড়া</strong><span>সবচেয়ে সস্তা: ${x.cheapest.titleBn} ৳${x.cheapest.fare}</span></a>`).join("\n")}
 </main>
 <footer>ভাড়াঠিক? — BRTA ও DMTCL-এর প্রকাশিত সরকারি রেট থেকে হিসাব করা ভাড়া। <a href="${SITE}/">অ্যাপে ফিরে যান</a> · তৈরি: <a href="https://cryptowebbuild.com/">CryptoWebBuild</a></footer>
+<a class="sticky-cta" href="${SITE}/?from=${r.fromId}&amp;to=${r.toId}">🧮 অ্যাপে ${r.fromBn} → ${r.toBn} ভাড়া দেখুন</a>
 </body>
 </html>`;
 };
@@ -339,6 +347,7 @@ ${ROUTES.map((x) => `<a class="card" href="${SITE}/route/${x.slug}/"><strong>${x
 <a class="appcta" href="${SITE}/">🧮 অ্যাপে যেকোনো রুটের ভাড়া দেখুন →</a>
 </main>
 <footer>ভাড়াঠিক? — ঠকবেন না, জেনে উঠুন। তৈরি: <a href="https://cryptowebbuild.com/">CryptoWebBuild</a></footer>
+<a class="sticky-cta" href="${SITE}/">🧮 অ্যাপে যেকোনো রুটের ভাড়া দেখুন</a>
 </body>
 </html>`;
 
