@@ -1,6 +1,6 @@
 {
-  "background_color": "#f2f7f3",
-  "description": "বাস, মেট্রো, CNG ও রিকশার সরকারি/ন্যায্য ভাড়া এক ট্যাপে যাচাই করুন।",
+  "background_color": "#f7f6f1",
+  "description": "\u09ac\u09be\u09b8, \u09ae\u09c7\u099f\u09cd\u09b0\u09cb, CNG \u0993 \u09b0\u09bf\u0995\u09b6\u09be\u09b0 \u09b8\u09b0\u0995\u09be\u09b0\u09bf/\u09a8\u09cd\u09af\u09be\u09af\u09cd\u09af \u09ad\u09be\u09a1\u09bc\u09be \u098f\u0995 \u099f\u09cd\u09af\u09be\u09aa\u09c7 \u09af\u09be\u099a\u09be\u0987 \u0995\u09b0\u09c1\u09a8\u0964",
   "display": "standalone",
   "icons": [
     {
@@ -29,9 +29,9 @@
     }
   ],
   "lang": "bn",
-  "name": "ভাড়াঠিক? — ঢাকার সঠিক ভাড়া",
+  "name": "\u09ad\u09be\u09a1\u09bc\u09be\u09a0\u09bf\u0995? \u2014 \u09a2\u09be\u0995\u09be\u09b0 \u09b8\u09a0\u09bf\u0995 \u09ad\u09be\u09a1\u09bc\u09be",
   "scope": ".",
-  "short_name": "ভাড়াঠিক?",
+  "short_name": "\u09ad\u09be\u09a1\u09bc\u09be\u09a0\u09bf\u0995?",
   "start_url": ".",
-  "theme_color": "#052e16"
+  "theme_color": "#052e1b"
 }
