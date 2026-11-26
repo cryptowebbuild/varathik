@@ -32,6 +32,12 @@ th, td { border-bottom:1px solid var(--border); padding:7px 10px; text-align:lef
 th { background:var(--g100); }
 .note { color:var(--muted); font-size:14.5px; }
 .appcta { display:block; text-align:center; background:linear-gradient(120deg,var(--g600),#22c55e); color:#fff; text-decoration:none; font-weight:800; font-size:18px; padding:15px; border-radius:14px; margin:26px 0; box-shadow:0 8px 20px rgba(22,163,74,.35); }
+.sticky-cta { display:none; }
+.bar { height:6px; border-radius:3px; background:linear-gradient(90deg,var(--g600),#4ade80); margin-top:5px; min-width:12px; }
+@media (max-width: 640px) {
+  body { padding-bottom:78px; }
+  .sticky-cta { display:block; position:fixed; left:12px; right:12px; bottom:12px; z-index:50; text-align:center; background:linear-gradient(120deg,var(--g600),#22c55e); color:#fff; text-decoration:none; font-weight:800; font-size:16.5px; padding:14px; border-radius:999px; box-shadow:0 10px 24px rgba(5,46,22,.4); }
+}
 .faq { background:#fff; border:1.5px solid var(--border); border-radius:12px; padding:6px 18px; margin:12px 0; }
 .faq h3 { margin:14px 0 2px; font-size:17px; }
 .faq p { margin:0 0 14px; color:#33473a; }
@@ -82,5 +88,6 @@ footer a { color:var(--g600); }
 <a class="card" href="https://cryptowebbuild.github.io/varathik/blog/rickshaw-fare-dhaka/"><strong>ঢাকায় রিকশা ভাড়া: সরকারি রেট নেই — তবু ঠকবেন না</strong><span>রিকশার কোনো সরকারি ভাড়া নেই, তাই দরদামই নিয়ম। দূরত্ব অনুযায়ী চলতি বাজার রেঞ্জের তালিকা, যাতে ওঠার আগেই আন্দাজ থাকে কত হওয়া উচিত।</span></a>
 </main>
 <footer>ভাড়াঠিক? — BRTA ও DMTCL-এর প্রকাশিত সরকারি রেট থেকে হিসাব করা ভাড়া। <a href="https://cryptowebbuild.github.io/varathik/">অ্যাপে ফিরে যান</a> · তৈরি: <a href="https://cryptowebbuild.com/">CryptoWebBuild</a></footer>
+<a class="sticky-cta" href="https://cryptowebbuild.github.io/varathik/?from=mirpur-10&amp;to=motijheel">🧮 অ্যাপে ভাড়া দেখুন</a>
 </body>
 </html>
