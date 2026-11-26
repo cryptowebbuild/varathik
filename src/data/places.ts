@@ -65,19 +65,47 @@ export const PLACES: Place[] = [
   { id: "merul", bn: "মেরুল বাড্ডা", en: "Merul Badda", aliases: ["merul", "মেরুল"], lat: 23.7745, lng: 90.4275 },
   { id: "paltan", bn: "পল্টন", en: "Paltan", aliases: ["paltan", "পল্টন"], lat: 23.736, lng: 90.4105 },
   { id: "kakrail", bn: "কাকরাইল", en: "Kakrail", aliases: ["kakrail", "কাকরাইল"], lat: 23.7425, lng: 90.4095 },
+  { id: "mirpur-2", bn: "মিরপুর ২", en: "Mirpur 2", aliases: ["mirpur 2", "মিরপুর ২"], lat: 23.8068, lng: 90.3635 },
+  { id: "mirpur-6", bn: "মিরপুর ৬", en: "Mirpur 6", aliases: ["mirpur 6", "মিরপুর ৬"], lat: 23.8065, lng: 90.3662, metro: "mirpur-10" },
+  { id: "mirpur-14", bn: "মিরপুর ১৪ (কাফরুল)", en: "Mirpur 14 (Kafrul)", aliases: ["mirpur 14", "kafrul", "কাফরুল"], lat: 23.7901, lng: 90.3833 },
+  { id: "rupnagar", bn: "রূপনগর", en: "Rupnagar", aliases: ["rupnagar", "রূপনগর"], lat: 23.815, lng: 90.3561 },
+  { id: "mirpur-dohs", bn: "মিরপুর DOHS", en: "Mirpur DOHS", aliases: ["dohs", "ডিওএইচএস"], lat: 23.8345, lng: 90.3694 },
+  { id: "vasantek", bn: "ভাসানটেক", en: "Vasantek", aliases: ["vasantek", "ভাসানটেক"], lat: 23.8055, lng: 90.395 },
+  { id: "niketan", bn: "নিকেতন", en: "Niketan", aliases: ["niketan", "নিকেতন"], lat: 23.7827, lng: 90.4032 },
+  { id: "gulshan-2", bn: "গুলশান ২", en: "Gulshan 2", aliases: ["gulshan 2", "গুলশান ২"], lat: 23.7886, lng: 90.4165 },
+  { id: "jamuna", bn: "যমুনা ফিউচার পার্ক", en: "Jamuna Future Park", aliases: ["jamuna", "যমুনা"], lat: 23.8127, lng: 90.4213 },
+  { id: "nikunja", bn: "নিকুঞ্জ", en: "Nikunja", aliases: ["nikunja", "নিকুঞ্জ"], lat: 23.828, lng: 90.42 },
+  { id: "house-building", bn: "হাউজ বিল্ডিং (উত্তরা)", en: "House Building", aliases: ["house building", "হাউজ বিল্ডিং"], lat: 23.8733, lng: 90.3968, metro: "uttara-center" },
+  { id: "rajlokkhi", bn: "রাজলক্ষ্মী (উত্তরা)", en: "Rajlokkhi", aliases: ["rajlokkhi", "রাজলক্ষ্মী"], lat: 23.868, lng: 90.4004, metro: "uttara-center" },
+  { id: "abdullahpur", bn: "আবদুল্লাহপুর", en: "Abdullahpur", aliases: ["abdullahpur", "আবদুল্লাহপুর"], lat: 23.8843, lng: 90.4004 },
+  { id: "tongi", bn: "টঙ্গী", en: "Tongi", aliases: ["tongi", "টঙ্গী"], lat: 23.9059, lng: 90.3938 },
+  { id: "aminbazar", bn: "আমিনবাজার", en: "Amin Bazar", aliases: ["amin bazar", "আমিনবাজার"], lat: 23.7837, lng: 90.2898 },
+  { id: "hemayetpur", bn: "হেমায়েতপুর", en: "Hemayetpur", aliases: ["hemayetpur", "হেমায়েতপুর"], lat: 23.7932, lng: 90.2717 },
+  { id: "savar", bn: "সাভার", en: "Savar", aliases: ["savar", "সাভার"], lat: 23.8488, lng: 90.2563 },
+  { id: "dhanmondi-27", bn: "ধানমন্ডি ২৭", en: "Dhanmondi 27", aliases: ["dhanmondi 27", "ধানমন্ডি ২৭"], lat: 23.7564, lng: 90.3753 },
+  { id: "shankar", bn: "শংকর", en: "Shankar", aliases: ["shankar", "শংকর"], lat: 23.7465, lng: 90.3624 },
+  { id: "bosila", bn: "বসিলা", en: "Bosila", aliases: ["bosila", "বসিলা"], lat: 23.7555, lng: 90.353 },
+  { id: "chankharpul", bn: "চানখাঁরপুল", en: "Chankharpul", aliases: ["chankharpul", "চানখাঁরপুল"], lat: 23.7238, lng: 90.4004 },
+  { id: "sadarghat", bn: "সদরঘাট", en: "Sadarghat", aliases: ["sadarghat", "সদরঘাট"], lat: 23.7075, lng: 90.4139 },
+  { id: "keraniganj", bn: "কেরানীগঞ্জ", en: "Keraniganj", aliases: ["keraniganj", "কেরানীগঞ্জ", "babubazar"], lat: 23.7083, lng: 90.4013 },
+  { id: "postogola", bn: "পোস্তগোলা", en: "Postogola", aliases: ["postogola", "পোস্তগোলা"], lat: 23.6976, lng: 90.4274 },
+  { id: "demra", bn: "ডেমরা", en: "Demra", aliases: ["demra", "ডেমরা"], lat: 23.725, lng: 90.49 },
+  { id: "mugda", bn: "মুগদা", en: "Mugda", aliases: ["mugda", "মুগদা"], lat: 23.7295, lng: 90.4275 },
+  { id: "basabo", bn: "বাসাবো", en: "Basabo", aliases: ["basabo", "বাসাবো"], lat: 23.7403, lng: 90.4329 },
+  { id: "shahjadpur", bn: "শাহজাদপুর", en: "Shahjadpur", aliases: ["shahjadpur", "শাহজাদপুর"], lat: 23.79, lng: 90.4228 },
+  { id: "sat-rasta", bn: "সাতরাস্তা (তেজগাঁও)", en: "Sat Rasta", aliases: ["sat rasta", "সাতরাস্তা"], lat: 23.7597, lng: 90.3987 }
 ];
-
 export function findPlace(id: string): Place {
-  return PLACES.find((p) => p.id === id) ?? PLACES[0];
+  return PLACES.find((pl) => pl.id === id) ?? PLACES[0];
 }
 
 export function searchPlaces(q: string): Place[] {
-  const s = q.trim().toLowerCase();
-  if (!s) return PLACES;
+  const needle = q.trim().toLowerCase();
+  if (!needle) return PLACES;
   return PLACES.filter(
-    (p) =>
-      p.bn.includes(q.trim()) ||
-      p.en.toLowerCase().includes(s) ||
-      p.aliases.some((a) => a.toLowerCase().includes(s))
+    (pl) =>
+      pl.bn.includes(q.trim()) ||
+      pl.en.toLowerCase().includes(needle) ||
+      pl.aliases.some((a) => a.toLowerCase().includes(needle) || a.includes(q.trim()))
   );
 }
