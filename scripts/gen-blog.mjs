@@ -169,21 +169,26 @@ ${table(["দূরত্ব", "সাধারণ রেঞ্জ"], rickRows)}
 
 // ---------- পেজের ছাঁচ (টেমপ্লেট) ----------
 const CSS = `
-:root { --g950:#052e16; --g600:#16a34a; --g100:#dcfce7; --ink:#14231a; --muted:#5b6b60; --border:#dce8de; }
+:root { --g950:#052e1b; --gold:#f2b33d; --g600:#16a34a; --g100:#dcfce7; --ink:#14231a; --muted:#5b6b60; --border:#dce8de; }
 * { box-sizing: border-box; }
-body { margin:0; font-family:"Hind Siliguri","Noto Sans Bengali",system-ui,sans-serif; color:var(--ink); background:#f2f7f3; line-height:1.75; }
-header { background:linear-gradient(140deg,var(--g950),#0b3d20); color:#fff; padding:18px 16px; }
+body { margin:0; font-family:"Hind Siliguri","Noto Sans Bengali",system-ui,sans-serif; -webkit-font-smoothing:antialiased; color:var(--ink); background:#f2f7f3; line-height:1.75; }
+header { position:sticky; top:0; z-index:40; background:rgba(6,43,24,.94); backdrop-filter:blur(10px); color:#fff; padding:14px 16px; box-shadow:0 1px 0 rgba(255,255,255,.06), 0 10px 30px rgba(5,46,27,.18); }
 header .in { max-width:820px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; gap:12px; }
-.logo { font-size:26px; font-weight:800; color:#fff; text-decoration:none; }
+.logo { font-family:"Baloo Da 2","Hind Siliguri",sans-serif; font-size:27px; font-weight:800; color:#fff; text-decoration:none; display:flex; align-items:center; gap:10px; }
+.logo img { width:36px; height:36px; border-radius:10px; background:#0a4d2a; box-shadow:0 6px 14px rgba(0,0,0,.35); }
+.logo .q { color:var(--gold); }
+h1 { font-family:"Baloo Da 2","Hind Siliguri",sans-serif; }
 .cta { background:var(--g600); color:#fff; text-decoration:none; font-weight:700; padding:9px 16px; border-radius:999px; font-size:15px; white-space:nowrap; }
 main { max-width:820px; margin:0 auto; padding:22px 16px 40px; }
 h1 { font-size:30px; line-height:1.4; margin:6px 0 4px; }
-h2 { font-size:22px; margin:30px 0 8px; color:var(--g950); }
+h2 { font-size:22px; margin:34px 0 8px; color:var(--g950); }
+h2::before { content:''; display:block; width:34px; height:3px; border-radius:2px; background:var(--gold); margin-bottom:10px; }
 .meta { color:var(--muted); font-size:14px; margin-bottom:14px; }
 p, li { font-size:17px; }
 ul { padding-left:22px; }
 .tw { overflow-x:auto; background:#fff; border:1.5px solid var(--border); border-radius:12px; margin:12px 0; }
-table { border-collapse:collapse; width:100%; font-size:14.5px; }
+table { border-collapse:collapse; width:100%; font-size:14.5px; font-variant-numeric:tabular-nums; }
+td:first-child { font-weight:600; }
 th, td { border-bottom:1px solid var(--border); padding:7px 10px; text-align:left; white-space:nowrap; }
 th { background:var(--g100); }
 .note { color:var(--muted); font-size:14.5px; }
@@ -197,7 +202,8 @@ th { background:var(--g100); }
 .faq { background:#fff; border:1.5px solid var(--border); border-radius:12px; padding:6px 18px; margin:12px 0; }
 .faq h3 { margin:14px 0 2px; font-size:17px; }
 .faq p { margin:0 0 14px; color:#33473a; }
-.card { display:block; background:#fff; border:1.5px solid var(--border); border-radius:14px; padding:16px 18px; margin:12px 0; text-decoration:none; color:var(--ink); }
+.card { display:block; background:#fff; border:1.5px solid var(--border); border-radius:14px; padding:16px 18px; margin:12px 0; text-decoration:none; color:var(--ink); transition:all .18s ease; }
+.card:hover { transform:translateY(-2px); box-shadow:0 12px 26px rgba(5,46,27,.10); border-color:#bcd8c2; }
 .card strong { font-size:19px; display:block; margin-bottom:4px; }
 .card span { color:var(--muted); font-size:15px; }
 footer { max-width:820px; margin:0 auto; padding:0 16px 34px; color:var(--muted); font-size:14px; }
@@ -230,20 +236,22 @@ const page = (a) => {
 <meta property="og:description" content="${a.description}" />
 <meta property="og:url" content="${url}" />
 <meta property="og:image" content="${SITE}/og.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@700;800&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet" />
 <link rel="icon" type="image/svg+xml" href="${SITE}/icon.svg" />
 <style>${CSS}</style>
 <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": [articleLd, faqLd] })}</script>
 </head>
 <body>
 <header><div class="in">
-<a class="logo" href="${SITE}/">ভাড়াঠিক?</a>
+<a class="logo" href="${SITE}/"><img src="${SITE}/icon.svg" alt="" /><span>ভাড়াঠিক<span class="q">?</span></span></a>
 <a class="cta" href="${SITE}/">অ্যাপে ভাড়া দেখুন</a>
 </div></header>
 <main>
 <p class="meta"><a href="${SITE}/blog/">← সব গাইড</a> · আপডেট: ${UPDATED}</p>
 <h1>${a.title}</h1>
 ${a.body}
-<a class="appcta" href="${SITE}/?from=${a.cta.from}&amp;to=${a.cta.to}">🧮 ${a.cta.label} →</a>
+<a class="appcta" href="${SITE}/?from=${a.cta.from}&amp;to=${a.cta.to}">${a.cta.label} →</a>
 <h2>সাধারণ প্রশ্ন</h2>
 <div class="faq">
 ${a.faq.map(([q, ans]) => `<h3>${q}</h3><p>${ans}</p>`).join("\n")}
@@ -252,7 +260,7 @@ ${a.faq.map(([q, ans]) => `<h3>${q}</h3><p>${ans}</p>`).join("\n")}
 ${ARTICLES.filter((x) => x.slug !== a.slug).map((x) => `<a class="card" href="${SITE}/blog/${x.slug}/"><strong>${x.title}</strong><span>${x.description}</span></a>`).join("\n")}
 </main>
 <footer>ভাড়াঠিক? — BRTA ও DMTCL-এর প্রকাশিত সরকারি রেট থেকে হিসাব করা ভাড়া। <a href="${SITE}/">অ্যাপে ফিরে যান</a> · তৈরি: <a href="https://cryptowebbuild.com/">CryptoWebBuild</a></footer>
-<a class="sticky-cta" href="${SITE}/?from=${a.cta.from}&amp;to=${a.cta.to}">🧮 অ্যাপে ভাড়া দেখুন</a>
+<a class="sticky-cta" href="${SITE}/?from=${a.cta.from}&amp;to=${a.cta.to}">অ্যাপে ভাড়া দেখুন</a>
 </body>
 </html>`;
 };
@@ -288,13 +296,15 @@ const routePage = (r) => {
 <meta property="og:description" content="${description}" />
 <meta property="og:url" content="${url}" />
 <meta property="og:image" content="${SITE}/og.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@700;800&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet" />
 <link rel="icon" type="image/svg+xml" href="${SITE}/icon.svg" />
 <style>${CSS}</style>
 <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": [articleLd, faqLd] })}</script>
 </head>
 <body>
 <header><div class="in">
-<a class="logo" href="${SITE}/">ভাড়াঠিক?</a>
+<a class="logo" href="${SITE}/"><img src="${SITE}/icon.svg" alt="" />ভাড়াঠিক<span class="q">?</span></a>
 <a class="cta" href="${SITE}/?from=${r.fromId}&amp;to=${r.toId}">অ্যাপে এই রুট খুলুন</a>
 </div></header>
 <main>
@@ -302,10 +312,10 @@ const routePage = (r) => {
 <h1>${title}</h1>
 <p><strong>${r.fromBn} → ${r.toBn}</strong> — সবচেয়ে সস্তা অপশন <strong>${r.cheapest.titleBn} ৳${r.cheapest.fare}</strong>। নিচে প্রতিটা যানের ভাড়া, দূরত্ব ও আনুমানিক সময় সরকারি রেটে হিসাব করে দেওয়া হলো।</p>
 <h2>যান অনুযায়ী ভাড়া</h2>
-${table(["যানবাহন", "ভাড়া", "দূরত্ব", "আনুমানিক সময়"], r.modes.map((m) => [m.titleBn, `৳${m.fare}${m.fareNote ? ` (${m.fareNote})` : ""}<div class="bar" style="width:${Math.max(6, Math.round((m.fare / Math.max(...r.modes.map((x) => x.fare))) * 100))}%"></div>`, `${m.km} কিমি`, `~${m.minutes} মিনিট`]))}
+${table(["যানবাহন", "ভাড়া", "দূরত্ব", "আনুমানিক সময়"], r.modes.map((m) => [m.titleBn, `৳${m.fare}${m.fareNote ? `<br/><span class="note">${m.fareNote}</span>` : ""}<div class="bar" style="width:${Math.max(6, Math.round((m.fare / Math.max(...r.modes.map((x) => x.fare))) * 100))}%"></div>`, `${m.km} কিমি`, `~${m.minutes} মিনিট`]))}
 ${r.buses.length ? `<h2>সরাসরি বাস</h2>${r.buses.map((b) => `<p><strong>${b.nameBn}</strong>${b.examples.length ? ` (যেমন: ${b.examples.join(", ")})` : ""} — ভাড়া ৳${b.fare}, দূরত্ব ${b.km} কিমি<br/><span class="note">স্টপ: ${b.stopsBn.join(" → ")}</span></p>`).join("\n")}` : ""}
 ${r.transfer && !r.buses.length ? `<h2>বদলি করে বাসে</h2><p>সরাসরি বাস নেই। <strong>${r.transfer.firstRouteBn}</strong>-এ ${r.transfer.transferBn} পর্যন্ত (৳${r.transfer.fareFirst}), তারপর <strong>${r.transfer.secondRouteBn}</strong>-এ ${r.toBn} (৳${r.transfer.fareSecond}) — মোট <strong>৳${r.transfer.totalFare}</strong> (দুটি আলাদা টিকিট)।</p>` : ""}
-<a class="appcta" href="${SITE}/?from=${r.fromId}&amp;to=${r.toId}">🧮 অ্যাপে ${r.fromBn} → ${r.toBn} ভাড়া কার্ডসহ দেখুন →</a>
+<a class="appcta" href="${SITE}/?from=${r.fromId}&amp;to=${r.toId}">অ্যাপে ${r.fromBn} → ${r.toBn} ভাড়া কার্ডসহ দেখুন →</a>
 <h2>সাধারণ প্রশ্ন</h2>
 <div class="faq">
 ${faq.map(([q, ans]) => `<h3>${q}</h3><p>${ans}</p>`).join("\n")}
@@ -314,7 +324,7 @@ ${faq.map(([q, ans]) => `<h3>${q}</h3><p>${ans}</p>`).join("\n")}
 ${ROUTES.filter((x) => x.slug !== r.slug).slice(0, 6).map((x) => `<a class="card" href="${SITE}/route/${x.slug}/"><strong>${x.fromBn} → ${x.toBn} ভাড়া</strong><span>সবচেয়ে সস্তা: ${x.cheapest.titleBn} ৳${x.cheapest.fare}</span></a>`).join("\n")}
 </main>
 <footer>ভাড়াঠিক? — BRTA ও DMTCL-এর প্রকাশিত সরকারি রেট থেকে হিসাব করা ভাড়া। <a href="${SITE}/">অ্যাপে ফিরে যান</a> · তৈরি: <a href="https://cryptowebbuild.com/">CryptoWebBuild</a></footer>
-<a class="sticky-cta" href="${SITE}/?from=${r.fromId}&amp;to=${r.toId}">🧮 অ্যাপে ${r.fromBn} → ${r.toBn} ভাড়া দেখুন</a>
+<a class="sticky-cta" href="${SITE}/?from=${r.fromId}&amp;to=${r.toId}">অ্যাপে ${r.fromBn} → ${r.toBn} ভাড়া দেখুন</a>
 </body>
 </html>`;
 };
@@ -330,12 +340,14 @@ const indexPage = `<!doctype html>
 <meta property="og:title" content="ভাড়া গাইড ও ব্লগ — ভাড়াঠিক?" />
 <meta property="og:description" content="ঢাকার সব যানবাহনের সরকারি ভাড়ার গাইড ও চার্ট।" />
 <meta property="og:image" content="${SITE}/og.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@700;800&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet" />
 <link rel="icon" type="image/svg+xml" href="${SITE}/icon.svg" />
 <style>${CSS}</style>
 </head>
 <body>
 <header><div class="in">
-<a class="logo" href="${SITE}/">ভাড়াঠিক?</a>
+<a class="logo" href="${SITE}/"><img src="${SITE}/icon.svg" alt="" />ভাড়াঠিক<span class="q">?</span></a>
 <a class="cta" href="${SITE}/">অ্যাপে ভাড়া দেখুন</a>
 </div></header>
 <main>
@@ -344,10 +356,10 @@ const indexPage = `<!doctype html>
 ${ARTICLES.map((x) => `<a class="card" href="${SITE}/blog/${x.slug}/"><strong>${x.title}</strong><span>${x.description}</span></a>`).join("\n")}
 <h2>জনপ্রিয় রুটের ভাড়া</h2>
 ${ROUTES.map((x) => `<a class="card" href="${SITE}/route/${x.slug}/"><strong>${x.fromBn} → ${x.toBn} ভাড়া</strong><span>সবচেয়ে সস্তা: ${x.cheapest.titleBn} ৳${x.cheapest.fare} · বাস, মেট্রো, CNG, রিকশা তুলনা</span></a>`).join("\n")}
-<a class="appcta" href="${SITE}/">🧮 অ্যাপে যেকোনো রুটের ভাড়া দেখুন →</a>
+<a class="appcta" href="${SITE}/">অ্যাপে যেকোনো রুটের ভাড়া দেখুন →</a>
 </main>
 <footer>ভাড়াঠিক? — ঠকবেন না, জেনে উঠুন। তৈরি: <a href="https://cryptowebbuild.com/">CryptoWebBuild</a></footer>
-<a class="sticky-cta" href="${SITE}/">🧮 অ্যাপে যেকোনো রুটের ভাড়া দেখুন</a>
+<a class="sticky-cta" href="${SITE}/">অ্যাপে যেকোনো রুটের ভাড়া দেখুন</a>
 </body>
 </html>`;
 
