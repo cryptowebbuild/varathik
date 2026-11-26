@@ -10,6 +10,11 @@ import { RATE_SOURCES } from "./data/rates";
 import { computeResults, busFareForKm, busKmFor, round5, cngFareForKm, rickshawRangeForKm, roadKm, transferFareFor, type ModeResult } from "./lib/fare";
 import { shareFareCard } from "./lib/fareCard";
 
+// প্রদর্শনের জন্য জায়গা খোঁজা — এখানে id সবসময় অ্যাপের নিজের স্টেট/ডেটা থেকে আসে (সবসময় বৈধ),
+// তাই নাম দেখাতে আগের জায়গায় ফলব্যাক নিরাপদ। হিসাবের পথে এই ফলব্যাক নেই — computeResults
+// অবৈধ id পেলে খালি ফল দেয় (F1 ফিক্স)।
+const fp = (id: string): Place => findPlace(id) ?? PLACES[0];
+
 /** বাংলা সংখ্যা (০-৯) ইংরেজিতে রূপান্তর — বাংলা কীবোর্ডের ইনপুটের জন্য */
 const bn2en = (v: string) => v.replace(/[০-৯]/g, (d) => String("০১২৩৪৫৬৭৮৯".indexOf(d)));
 const digitsOnly = (v: string) => bn2en(v).replace(/[^0-9]/g, "");
@@ -54,7 +59,7 @@ function PlacePicker({
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const place = findPlace(value);
+  const place = fp(value);
 
   // ড্রপডাউন খোলা থাকলে বাইরে ক্লিক বা Escape চাপলেই বন্ধ হবে
   useEffect(() => {
@@ -178,8 +183,8 @@ export default function App() {
   const results = useMemo(() => (from !== to ? computeResults(from, to) : []), [from, to]);
   const cheapest = results[0];
   const busResult = results.find((r) => r.mode === "bus");
-  const fromPlace = findPlace(from);
-  const toPlace = findPlace(to);
+  const fromPlace = fp(from);
+  const toPlace = fp(to);
 
   const metroCheck = fromPlace.metro && toPlace.metro ? metroFare(fromPlace.metro, toPlace.metro) : null;
   // নতুন রুটে মেট্রো না থাকলে চেক-ট্যাবের মোড বাসে ফিরিয়ে দাও (না হলে ভাড়া ৳০ ধরে ভুল রায় আসত)
@@ -270,16 +275,16 @@ export default function App() {
                   setTab("fare");
                 }}
               >
-                {nm(findPlace(a))} → {nm(findPlace(b))}
+                {nm(fp(a))} → {nm(fp(b))}
               </button>
             ))}
           </div>
           {(favs.length > 0 || recent.some((k) => k !== pairKey)) && (
             <div className="chips sub">
               {favs.map((k) => { const [a, b] = k.split(">"); return (
-                <button key={"f" + k} type="button" onClick={() => { setFrom(a); setTo(b); setTab("fare"); }}>★ {nm(findPlace(a))} → {nm(findPlace(b))}</button> ); })}
+                <button key={"f" + k} type="button" onClick={() => { setFrom(a); setTo(b); setTab("fare"); }}>★ {nm(fp(a))} → {nm(fp(b))}</button> ); })}
               {recent.filter((k) => k !== pairKey && !favs.includes(k)).slice(0, 3).map((k) => { const [a, b] = k.split(">"); return (
-                <button key={"r" + k} type="button" onClick={() => { setFrom(a); setTo(b); setTab("fare"); }}>🕘 {nm(findPlace(a))} → {nm(findPlace(b))}</button> ); })}
+                <button key={"r" + k} type="button" onClick={() => { setFrom(a); setTo(b); setTab("fare"); }}>🕘 {nm(fp(a))} → {nm(fp(b))}</button> ); })}
             </div>
           )}
         </div>
@@ -357,8 +362,8 @@ export default function App() {
                       <div className="bus-list">
                         {shown.buses.slice(0, 3).map((b) => (
                           <div key={b.route.id} className="bus-row">
-                            <strong>{L ? b.route.nameBn : `${findPlace(b.directionStops[0]).en} — ${findPlace(b.directionStops[b.directionStops.length - 1]).en} corridor`}</strong>
-                            <span>{b.directionStops.map((s) => nm(findPlace(s))).join(" → ")}</span>
+                            <strong>{L ? b.route.nameBn : `${fp(b.directionStops[0]).en} — ${fp(b.directionStops[b.directionStops.length - 1]).en} corridor`}</strong>
+                            <span>{b.directionStops.map((s) => nm(fp(s))).join(" → ")}</span>
                             <span className="bus-fare">৳{busFareForKm(b.km)} · {b.km} {L ? "কিমি" : "km"}</span>
                             <button
                               type="button"
@@ -372,7 +377,7 @@ export default function App() {
                               <div className="route-line">
                                 {chartFor(b).map((row, i) => (
                                   <div key={row.stopId} className={"rl-stop" + (row.stopId === to ? " dest" : "") + (i === 0 ? " start" : "")}>
-                                    <i></i><span>{nm(findPlace(row.stopId))}</span>
+                                    <i></i><span>{nm(fp(row.stopId))}</span>
                                   </div>
                                 ))}
                               </div>
@@ -383,7 +388,7 @@ export default function App() {
                                 <tbody>
                                   {chartFor(b).map((row) => (
                                     <tr key={row.stopId} className={row.stopId === to ? "dest" : ""}>
-                                      <td>{nm(findPlace(row.stopId))}</td>
+                                      <td>{nm(fp(row.stopId))}</td>
                                       <td>{row.km} {L ? "কিমি" : "km"}</td>
                                       <td>৳{row.fare}</td>
                                     </tr>
