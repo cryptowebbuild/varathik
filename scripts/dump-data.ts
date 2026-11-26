@@ -37,8 +37,8 @@ for (const [fromId, toId] of PAIRS) {
     console.warn("skip (unknown place):", fromId, toId);
     continue;
   }
-  const from = findPlace(fromId);
-  const to = findPlace(toId);
+  const from = findPlace(fromId)!;
+  const to = findPlace(toId)!;
   const results = computeResults(fromId, toId);
   const bus = results.find((r) => r.mode === "bus");
   const transfer = transferFareFor(fromId, toId);
@@ -66,7 +66,7 @@ for (const [fromId, toId] of PAIRS) {
       examples: b.route.examples,
       km: Math.round(b.km * 10) / 10,
       fare: Math.max(10, Math.round(b.km * 2.7)),
-      stopsBn: b.directionStops.map((id) => findPlace(id).bn),
+      stopsBn: b.directionStops.map((id) => findPlace(id)!.bn),
     })),
     transfer: transfer
       ? {
