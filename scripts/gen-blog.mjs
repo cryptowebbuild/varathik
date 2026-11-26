@@ -3,8 +3,12 @@
 // sitemap.xml আর robots.txt তৈরি করে — যাতে Google সরাসরি কনটেন্ট পড়তে পারে।
 // সব ভাড়ার সংখ্যা অ্যাপের একই যাচাইকৃত রেট থেকে হিসাব করা (data/rates.ts-এর নিয়ম)।
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
+
+// রুট পেজের ডেটা — dump-data.ts অ্যাপের নিজের হিসাব থেকে বানিয়ে দেয়
+const routesPath = new URL("../dist/routes-data.json", import.meta.url);
+const ROUTES = existsSync(routesPath) ? JSON.parse(readFileSync(routesPath, "utf8")) : [];
 
 const SITE = "https://cryptowebbuild.github.io/varathik";
 const UPDATED = "২০২৬-১১-২৬";
@@ -246,6 +250,67 @@ ${ARTICLES.filter((x) => x.slug !== a.slug).map((x) => `<a class="card" href="${
 </html>`;
 };
 
+// ---------- রুট পেজের ছাঁচ ----------
+const routePage = (r) => {
+  const url = `${SITE}/route/${r.slug}/`;
+  const title = `${r.fromBn} থেকে ${r.toBn} ভাড়া: বাস, মেট্রো, CNG ও রিকশায় কত লাগবে?`;
+  const description = `${r.fromBn} থেকে ${r.toBn} যাওয়ার সব যানের ভাড়া একসঙ্গে — সবচেয়ে সস্তা ${r.cheapest.titleBn} ৳${r.cheapest.fare}। সরাসরি বাসের তালিকা, স্টপ ও বদলি রুটসহ।`;
+  const busMode = r.modes.find((m) => m.mode === "bus");
+  const metroMode = r.modes.find((m) => m.mode === "metro");
+  const faq = [
+    [`${r.fromBn} থেকে ${r.toBn} সবচেয়ে সস্তা যান কোনটি?`, `সবচেয়ে সস্তা ${r.cheapest.titleBn} — ভাড়া ৳${r.cheapest.fare}। প্রতিদিন যাতায়াত করলে এই যানে মাসিক খরচ প্রায় ৳${r.monthlyCheapest} (দিনে ২ ট্রিপ × ২৬ দিন)।`],
+    ...(busMode ? [[`${r.fromBn} থেকে ${r.toBn} বাস ভাড়া কত?`, `বাস ভাড়া ৳${busMode.fare} (দূরত্ব ${busMode.km} কিমি, BRTA রেট কিমি প্রতি ৳২.৭০)। ${r.buses.length ? `সরাসরি বাস আছে ${r.buses.length}টি রুটে।` : ""}`]] : []),
+    ...(metroMode ? [[`${r.fromBn} থেকে ${r.toBn} মেট্রো ভাড়া কত?`, `মেট্রো ভাড়া ৳${metroMode.fare} (কার্ডে ১০% ছাড়ে ৳${Math.round(metroMode.fare * 0.9)})। সময় লাগে প্রায় ${metroMode.minutes} মিনিট।`]] : []),
+    [`${r.fromBn} থেকে ${r.toBn} CNG ভাড়া কত?`, (() => { const c = r.modes.find((m) => m.mode === "cng"); return c ? `মিটার ভাড়া প্রায় ৳${c.fare} (দূরত্ব ${c.km} কিমি; প্রথম ২ কিমি ৳৪০, এরপর কিমি প্রতি ৳১২, জ্যামে অপেক্ষা ৳২/মিনিট অতিরিক্ত)।` : "এই রুটে CNG ভাড়া অ্যাপে দেখুন।"; })()],
+  ];
+  const faqLd = {
+    "@type": "FAQPage",
+    mainEntity: faq.map(([q, ans]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: ans } })),
+  };
+  const articleLd = { "@type": "Article", headline: title, description, mainEntityOfPage: url, author: { "@type": "Organization", name: "ভাড়াঠিক? (CryptoWebBuild)" } };
+  return `<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>${title} — ভাড়াঠিক?</title>
+<meta name="description" content="${description}" />
+<link rel="canonical" href="${url}" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="${title}" />
+<meta property="og:description" content="${description}" />
+<meta property="og:url" content="${url}" />
+<meta property="og:image" content="${SITE}/og.png" />
+<link rel="icon" type="image/svg+xml" href="${SITE}/icon.svg" />
+<style>${CSS}</style>
+<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": [articleLd, faqLd] })}</script>
+</head>
+<body>
+<header><div class="in">
+<a class="logo" href="${SITE}/">ভাড়াঠিক?</a>
+<a class="cta" href="${SITE}/?from=${r.fromId}&amp;to=${r.toId}">অ্যাপে এই রুট খুলুন</a>
+</div></header>
+<main>
+<p class="meta"><a href="${SITE}/blog/">← সব গাইড ও রুট</a> · আপডেট: ${UPDATED}</p>
+<h1>${title}</h1>
+<p><strong>${r.fromBn} → ${r.toBn}</strong> — সবচেয়ে সস্তা অপশন <strong>${r.cheapest.titleBn} ৳${r.cheapest.fare}</strong>। নিচে প্রতিটা যানের ভাড়া, দূরত্ব ও আনুমানিক সময় সরকারি রেটে হিসাব করে দেওয়া হলো।</p>
+<h2>যান অনুযায়ী ভাড়া</h2>
+${table(["যানবাহন", "ভাড়া", "দূরত্ব", "আনুমানিক সময়"], r.modes.map((m) => [m.titleBn, `৳${m.fare}${m.fareNote ? ` (${m.fareNote})` : ""}`, `${m.km} কিমি`, `~${m.minutes} মিনিট`]))}
+${r.buses.length ? `<h2>সরাসরি বাস</h2>${r.buses.map((b) => `<p><strong>${b.nameBn}</strong>${b.examples.length ? ` (যেমন: ${b.examples.join(", ")})` : ""} — ভাড়া ৳${b.fare}, দূরত্ব ${b.km} কিমি<br/><span class="note">স্টপ: ${b.stopsBn.join(" → ")}</span></p>`).join("\n")}` : ""}
+${r.transfer && !r.buses.length ? `<h2>বদলি করে বাসে</h2><p>সরাসরি বাস নেই। <strong>${r.transfer.firstRouteBn}</strong>-এ ${r.transfer.transferBn} পর্যন্ত (৳${r.transfer.fareFirst}), তারপর <strong>${r.transfer.secondRouteBn}</strong>-এ ${r.toBn} (৳${r.transfer.fareSecond}) — মোট <strong>৳${r.transfer.totalFare}</strong> (দুটি আলাদা টিকিট)।</p>` : ""}
+<a class="appcta" href="${SITE}/?from=${r.fromId}&amp;to=${r.toId}">🧮 অ্যাপে ${r.fromBn} → ${r.toBn} ভাড়া কার্ডসহ দেখুন →</a>
+<h2>সাধারণ প্রশ্ন</h2>
+<div class="faq">
+${faq.map(([q, ans]) => `<h3>${q}</h3><p>${ans}</p>`).join("\n")}
+</div>
+<h2>আরও জনপ্রিয় রুট</h2>
+${ROUTES.filter((x) => x.slug !== r.slug).slice(0, 6).map((x) => `<a class="card" href="${SITE}/route/${x.slug}/"><strong>${x.fromBn} → ${x.toBn} ভাড়া</strong><span>সবচেয়ে সস্তা: ${x.cheapest.titleBn} ৳${x.cheapest.fare}</span></a>`).join("\n")}
+</main>
+<footer>ভাড়াঠিক? — BRTA ও DMTCL-এর প্রকাশিত সরকারি রেট থেকে হিসাব করা ভাড়া। <a href="${SITE}/">অ্যাপে ফিরে যান</a> · তৈরি: <a href="https://cryptowebbuild.com/">CryptoWebBuild</a></footer>
+</body>
+</html>`;
+};
+
 const indexPage = `<!doctype html>
 <html lang="bn">
 <head>
@@ -269,6 +334,8 @@ const indexPage = `<!doctype html>
 <h1>ভাড়া গাইড ও ব্লগ</h1>
 <p>ঢাকায় চলাচলের প্রতিটা যানের সরকারি ভাড়ার নিয়ম, চার্ট আর বাস্তব টিপস — সব সূত্রসহ যাচাই করা।</p>
 ${ARTICLES.map((x) => `<a class="card" href="${SITE}/blog/${x.slug}/"><strong>${x.title}</strong><span>${x.description}</span></a>`).join("\n")}
+<h2>জনপ্রিয় রুটের ভাড়া</h2>
+${ROUTES.map((x) => `<a class="card" href="${SITE}/route/${x.slug}/"><strong>${x.fromBn} → ${x.toBn} ভাড়া</strong><span>সবচেয়ে সস্তা: ${x.cheapest.titleBn} ৳${x.cheapest.fare} · বাস, মেট্রো, CNG, রিকশা তুলনা</span></a>`).join("\n")}
 <a class="appcta" href="${SITE}/">🧮 অ্যাপে যেকোনো রুটের ভাড়া দেখুন →</a>
 </main>
 <footer>ভাড়াঠিক? — ঠকবেন না, জেনে উঠুন। তৈরি: <a href="https://cryptowebbuild.com/">CryptoWebBuild</a></footer>
@@ -283,12 +350,13 @@ const out = (rel, content) => {
 };
 
 for (const a of ARTICLES) out(`blog/${a.slug}/index.html`, page(a));
+for (const r of ROUTES) out(`route/${r.slug}/index.html`, routePage(r));
 out("blog/index.html", indexPage);
 
-const urls = [`${SITE}/`, `${SITE}/blog/`, ...ARTICLES.map((a) => `${SITE}/blog/${a.slug}/`)];
+const urls = [`${SITE}/`, `${SITE}/blog/`, ...ARTICLES.map((a) => `${SITE}/blog/${a.slug}/`), ...ROUTES.map((r) => `${SITE}/route/${r.slug}/`)];
 out("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${
   urls.map((u) => `  <url><loc>${u}</loc><changefreq>weekly</changefreq></url>`).join("\n")
 }\n</urlset>\n`);
 out("robots.txt", `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
 
-console.log(`blog generated: ${ARTICLES.length} articles + index + sitemap + robots`);
+console.log(`blog generated: ${ARTICLES.length} articles + ${ROUTES.length} route pages + index + sitemap + robots`);
