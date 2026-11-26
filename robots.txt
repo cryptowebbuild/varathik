@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://cryptowebbuild.github.io/varathik/sitemap.xml
