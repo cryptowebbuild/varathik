@@ -43,3 +43,9 @@ export function metroFare(fromId: string, toId: string): { fare: number; km: num
   const fare = Math.min(RATES.metroMaxFare, Math.max(RATES.metroMinFare, raw));
   return { fare, km };
 }
+
+/** মেট্রোর সময়সূচি (DMTCL প্রকাশিত সময়সূচি অনুযায়ী, নভেম্বর ২০২৬ — সময় বদলাতে পারে) */
+export const METRO_SCHEDULE = {
+  bn: "প্রথম ট্রেন: উত্তরা নর্থ সকাল ৬:৩০ · মতিঝিল সকাল ৭:১৫ — শেষ ট্রেন: উত্তরা নর্থ রাত ৯:৫০ · মতিঝিল রাত ১০:৩০ — শুক্রবার: বিকেল ৩:০০ / ৩:২০ থেকে — পিক আওয়ারে ৫–৮ মিনিট পরপর, অফ-পিকে ৮–১২ মিনিট পরপর ট্রেন",
+  en: "First train: Uttara North 6:30 AM · Motijheel 7:15 AM — Last train: Uttara North 9:50 PM · Motijheel 10:30 PM — Friday: from 3:00 / 3:20 PM — Trains every 5–8 min at peak, 8–12 min off-peak",
+};
