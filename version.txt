@@ -1,1 +1,1 @@
-varathik v7.1 - 2026-11-26 (16 route landing pages for SEO)
+varathik v7.2 - 2026-11-26 (live-typing bugfix: onInput, picker search ranking, blog sticky CTA + fare bars)
