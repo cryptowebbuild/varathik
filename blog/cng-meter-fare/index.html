@@ -11,23 +11,30 @@
 <meta property="og:description" content="সরকারি মিটার রেট: প্রথম ২ কিমি ৳৪০, এরপর কিমি প্রতি ৳১২, অপেক্ষা মিনিটে ৳২। দূরত্ব অনুযায়ী ভাড়ার তালিকা আর মিটারে যেতে বাধ্য করার উপায়।" />
 <meta property="og:url" content="https://cryptowebbuild.github.io/varathik/blog/cng-meter-fare/" />
 <meta property="og:image" content="https://cryptowebbuild.github.io/varathik/og.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@700;800&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet" />
 <link rel="icon" type="image/svg+xml" href="https://cryptowebbuild.github.io/varathik/icon.svg" />
 <style>
-:root { --g950:#052e16; --g600:#16a34a; --g100:#dcfce7; --ink:#14231a; --muted:#5b6b60; --border:#dce8de; }
+:root { --g950:#052e1b; --gold:#f2b33d; --g600:#16a34a; --g100:#dcfce7; --ink:#14231a; --muted:#5b6b60; --border:#dce8de; }
 * { box-sizing: border-box; }
-body { margin:0; font-family:"Hind Siliguri","Noto Sans Bengali",system-ui,sans-serif; color:var(--ink); background:#f2f7f3; line-height:1.75; }
-header { background:linear-gradient(140deg,var(--g950),#0b3d20); color:#fff; padding:18px 16px; }
+body { margin:0; font-family:"Hind Siliguri","Noto Sans Bengali",system-ui,sans-serif; -webkit-font-smoothing:antialiased; color:var(--ink); background:#f2f7f3; line-height:1.75; }
+header { position:sticky; top:0; z-index:40; background:rgba(6,43,24,.94); backdrop-filter:blur(10px); color:#fff; padding:14px 16px; box-shadow:0 1px 0 rgba(255,255,255,.06), 0 10px 30px rgba(5,46,27,.18); }
 header .in { max-width:820px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; gap:12px; }
-.logo { font-size:26px; font-weight:800; color:#fff; text-decoration:none; }
+.logo { font-family:"Baloo Da 2","Hind Siliguri",sans-serif; font-size:27px; font-weight:800; color:#fff; text-decoration:none; display:flex; align-items:center; gap:10px; }
+.logo img { width:36px; height:36px; border-radius:10px; background:#0a4d2a; box-shadow:0 6px 14px rgba(0,0,0,.35); }
+.logo .q { color:var(--gold); }
+h1 { font-family:"Baloo Da 2","Hind Siliguri",sans-serif; }
 .cta { background:var(--g600); color:#fff; text-decoration:none; font-weight:700; padding:9px 16px; border-radius:999px; font-size:15px; white-space:nowrap; }
 main { max-width:820px; margin:0 auto; padding:22px 16px 40px; }
 h1 { font-size:30px; line-height:1.4; margin:6px 0 4px; }
-h2 { font-size:22px; margin:30px 0 8px; color:var(--g950); }
+h2 { font-size:22px; margin:34px 0 8px; color:var(--g950); }
+h2::before { content:''; display:block; width:34px; height:3px; border-radius:2px; background:var(--gold); margin-bottom:10px; }
 .meta { color:var(--muted); font-size:14px; margin-bottom:14px; }
 p, li { font-size:17px; }
 ul { padding-left:22px; }
 .tw { overflow-x:auto; background:#fff; border:1.5px solid var(--border); border-radius:12px; margin:12px 0; }
-table { border-collapse:collapse; width:100%; font-size:14.5px; }
+table { border-collapse:collapse; width:100%; font-size:14.5px; font-variant-numeric:tabular-nums; }
+td:first-child { font-weight:600; }
 th, td { border-bottom:1px solid var(--border); padding:7px 10px; text-align:left; white-space:nowrap; }
 th { background:var(--g100); }
 .note { color:var(--muted); font-size:14.5px; }
@@ -41,7 +48,8 @@ th { background:var(--g100); }
 .faq { background:#fff; border:1.5px solid var(--border); border-radius:12px; padding:6px 18px; margin:12px 0; }
 .faq h3 { margin:14px 0 2px; font-size:17px; }
 .faq p { margin:0 0 14px; color:#33473a; }
-.card { display:block; background:#fff; border:1.5px solid var(--border); border-radius:14px; padding:16px 18px; margin:12px 0; text-decoration:none; color:var(--ink); }
+.card { display:block; background:#fff; border:1.5px solid var(--border); border-radius:14px; padding:16px 18px; margin:12px 0; text-decoration:none; color:var(--ink); transition:all .18s ease; }
+.card:hover { transform:translateY(-2px); box-shadow:0 12px 26px rgba(5,46,27,.10); border-color:#bcd8c2; }
 .card strong { font-size:19px; display:block; margin-bottom:4px; }
 .card span { color:var(--muted); font-size:15px; }
 footer { max-width:820px; margin:0 auto; padding:0 16px 34px; color:var(--muted); font-size:14px; }
@@ -51,7 +59,7 @@ footer a { color:var(--g600); }
 </head>
 <body>
 <header><div class="in">
-<a class="logo" href="https://cryptowebbuild.github.io/varathik/">ভাড়াঠিক?</a>
+<a class="logo" href="https://cryptowebbuild.github.io/varathik/"><img src="https://cryptowebbuild.github.io/varathik/icon.svg" alt="" /><span>ভাড়াঠিক<span class="q">?</span></span></a>
 <a class="cta" href="https://cryptowebbuild.github.io/varathik/">অ্যাপে ভাড়া দেখুন</a>
 </div></header>
 <main>
@@ -74,7 +82,7 @@ footer a { color:var(--g600); }
 <li>আগে থেকেই নিজের রুটের মিটার ভাড়া জেনে রাখুন — ভাড়াঠিকের "বেশি নিয়েছে?" ট্যাবে কত নিয়েছে লিখলেই জ্যামের অপেক্ষা-সময়সহ ন্যায্য ভাড়া মিলিয়ে দেখতে পারবেন।</li>
 <li>জ্যামে দাঁড়িয়ে থাকলে মিটারে অপেক্ষা-চার্জ (৳২/মিনিট) যোগ হওয়া <strong>বৈধ</strong> — সেটা বেশি নেওয়া নয়।</li>
 </ul>
-<a class="appcta" href="https://cryptowebbuild.github.io/varathik/?from=dhanmondi&amp;to=motijheel">🧮 ধানমন্ডি → মতিঝিল CNG ভাড়া দেখুন →</a>
+<a class="appcta" href="https://cryptowebbuild.github.io/varathik/?from=dhanmondi&amp;to=motijheel">ধানমন্ডি → মতিঝিল CNG ভাড়া দেখুন →</a>
 <h2>সাধারণ প্রশ্ন</h2>
 <div class="faq">
 <h3>CNG-র প্রথম ২ কিমি ভাড়া কত?</h3><p>৳৪০। এরপর প্রতি কিলোমিটারে ৳১২ করে যোগ হয়।</p>
@@ -87,6 +95,6 @@ footer a { color:var(--g600); }
 <a class="card" href="https://cryptowebbuild.github.io/varathik/blog/rickshaw-fare-dhaka/"><strong>ঢাকায় রিকশা ভাড়া: সরকারি রেট নেই — তবু ঠকবেন না</strong><span>রিকশার কোনো সরকারি ভাড়া নেই, তাই দরদামই নিয়ম। দূরত্ব অনুযায়ী চলতি বাজার রেঞ্জের তালিকা, যাতে ওঠার আগেই আন্দাজ থাকে কত হওয়া উচিত।</span></a>
 </main>
 <footer>ভাড়াঠিক? — BRTA ও DMTCL-এর প্রকাশিত সরকারি রেট থেকে হিসাব করা ভাড়া। <a href="https://cryptowebbuild.github.io/varathik/">অ্যাপে ফিরে যান</a> · তৈরি: <a href="https://cryptowebbuild.com/">CryptoWebBuild</a></footer>
-<a class="sticky-cta" href="https://cryptowebbuild.github.io/varathik/?from=dhanmondi&amp;to=motijheel">🧮 অ্যাপে ভাড়া দেখুন</a>
+<a class="sticky-cta" href="https://cryptowebbuild.github.io/varathik/?from=dhanmondi&amp;to=motijheel">অ্যাপে ভাড়া দেখুন</a>
 </body>
 </html>
