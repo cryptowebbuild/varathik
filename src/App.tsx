@@ -1,14 +1,21 @@
-import { useMemo, useRef, useState } from "preact/hooks";
-import { PLACES, findPlace, searchPlaces } from "./data/places";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { PLACES, findPlace, searchPlaces, type Place } from "./data/places";
 import { BUS_ROUTES, chartFor } from "./data/busRoutes";
-import { METRO_STATIONS, metroFare } from "./data/metro";
+import { METRO_STATIONS, METRO_SCHEDULE, metroFare } from "./data/metro";
 import { RATE_SOURCES } from "./data/rates";
-import { computeResults, busFareForKm, busKmFor, round5, cngFareForKm, rickshawRangeForKm, roadKm, type ModeResult } from "./lib/fare";
+import { computeResults, busFareForKm, busKmFor, round5, cngFareForKm, rickshawRangeForKm, roadKm, transferFareFor, type ModeResult } from "./lib/fare";
 import { shareFareCard } from "./lib/fareCard";
 
 /** বাংলা সংখ্যা (০-৯) ইংরেজিতে রূপান্তর — বাংলা কীবোর্ডের ইনপুটের জন্য */
 const bn2en = (v: string) => v.replace(/[০-৯]/g, (d) => String("০১২৩৪৫৬৭৮৯".indexOf(d)));
 const digitsOnly = (v: string) => bn2en(v).replace(/[^0-9]/g, "");
+
+type Lang = "bn" | "en";
+const store = {
+  get(k: string): string | null { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k: string, v: string) { try { localStorage.setItem(k, v); } catch { /* ignore */ } },
+  getList(k: string): string[] { try { return JSON.parse(store.get(k) || "[]") as string[]; } catch { return []; } },
+};
 
 const MODE_ICON: Record<ModeResult["mode"], string> = {
   bus: "🚌",
@@ -31,12 +38,15 @@ function PlacePicker({
   value,
   onChange,
   exclude,
+  lang,
 }: {
   label: string;
   value: string;
   onChange: (id: string) => void;
   exclude: string;
+  lang: Lang;
 }) {
+  const L = lang === "bn";
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const place = findPlace(value);
@@ -46,14 +56,14 @@ function PlacePicker({
     <div className="picker">
       <label>{label}</label>
       <button type="button" className="picker-btn" onClick={() => setOpen(!open)}>
-        <span className="picker-name">{place.bn}</span>
-        <span className="picker-en">{place.en} ▾</span>
+        <span className="picker-name">{L ? place.bn : place.en}</span>
+        <span className="picker-en">{L ? place.en : place.bn} ▾</span>
       </button>
       {open && (
         <div className="picker-pop">
           <input
             autoFocus
-            placeholder="এলাকা খুঁজুন… (Mirpur, মিরপুর, mirpur 10)"
+            placeholder={L ? "এলাকা খুঁজুন… (Mirpur, মিরপুর, mirpur 10)" : "Search area… (Mirpur, মিরপুর)"}
             value={q}
             onChange={(e) => setQ(e.currentTarget.value)}
           />
@@ -68,12 +78,12 @@ function PlacePicker({
                     setQ("");
                   }}
                 >
-                  <span>{p.bn}</span>
-                  <small>{p.en}</small>
+                  <span>{L ? p.bn : p.en}</span>
+                  <small>{L ? p.en : p.bn}</small>
                 </button>
               </li>
             ))}
-            {results.length === 0 && <li className="empty">পাওয়া যায়নি</li>}
+            {results.length === 0 && <li className="empty">{L ? "পাওয়া যায়নি" : "Not found"}</li>}
           </ul>
         </div>
       )}
@@ -91,9 +101,44 @@ export default function App() {
   const [metroCard, setMetroCard] = useState(false);
   const [chartRoute, setChartRoute] = useState<string | null>(null);
   const cardBusy = useRef(false);
+  const [lang, setLang] = useState<Lang>(() => (store.get("vt-lang") === "en" ? "en" : "bn"));
+  const [theme, setTheme] = useState(() => (store.get("vt-theme") === "dark" ? "dark" : "light"));
+  const [favs, setFavs] = useState<string[]>(() => store.getList("vt-favs"));
+  const [recent, setRecent] = useState<string[]>(() => store.getList("vt-recent"));
+  const [voteX, setVoteX] = useState(() => store.get("vt-vote-x") === "1");
+  const L = lang === "bn";
+  const nm = (pl: Place) => (L ? pl.bn : pl.en);
+
+  useEffect(() => { document.documentElement.dataset.theme = theme; store.set("vt-theme", theme); }, [theme]);
+  useEffect(() => { store.set("vt-lang", lang); }, [lang]);
+  useEffect(() => { store.set("vt-favs", JSON.stringify(favs)); }, [favs]);
+  useEffect(() => {
+    if (from === to) return;
+    const key = from + ">" + to;
+    setRecent((r) => {
+      const next = [key, ...r.filter((k) => k !== key)].slice(0, 6);
+      store.set("vt-recent", JSON.stringify(next));
+      return next;
+    });
+  }, [from, to]);
+
+  const pairKey = from + ">" + to;
+  const isFav = favs.includes(pairKey);
+  function toggleFav() {
+    setFavs((f) => (isFav ? f.filter((k) => k !== pairKey) : [pairKey, ...f].slice(0, 8)));
+  }
+  const transfer = useMemo(() => (from !== to ? transferFareFor(from, to) : null), [from, to]);
+
+  function onWhatsApp(r: ModeResult) {
+    const text = L
+      ? `ভাড়াঠিক? অনুযায়ী ${fromPlace.bn} → ${toPlace.bn} — ${r.titleBn} ভাড়া ৳${r.fare} (${r.km} কিমি)। নিজে যাচাই করুন: https://cryptowebbuild.github.io/varathik/`
+      : `According to VaraThik: ${fromPlace.en} → ${toPlace.en} — ${r.titleEn} fare ৳${r.fare} (${r.km} km). Check yours: https://cryptowebbuild.github.io/varathik/`;
+    window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
+  }
 
   const results = useMemo(() => (from !== to ? computeResults(from, to) : []), [from, to]);
   const cheapest = results[0];
+  const busResult = results.find((r) => r.mode === "bus");
   const fromPlace = findPlace(from);
   const toPlace = findPlace(to);
 
@@ -136,20 +181,24 @@ export default function App() {
       <header className="hero">
         <div className="hero-inner">
           <div className="hero-text">
-            <div className="logo">ভাড়াঠিক?</div>
-            <p className="tagline">ঠকবেন না, জেনে উঠুন — বাস · মেট্রো · CNG · রিকশার সঠিক ভাড়া এক জায়গায়</p>
+            <div className="hero-tools">
+              <button type="button" className="tool-btn" aria-label={L ? "ডার্ক মোড" : "Dark mode"} onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? "☀️" : "🌙"}</button>
+              <button type="button" className="tool-btn lang-btn" aria-label="Language" onClick={() => setLang(L ? "en" : "bn")}>{L ? "EN" : "বাংলা"}</button>
+            </div>
+            <div className="logo">{L ? "ভাড়াঠিক?" : "VaraThik?"}</div>
+            <p className="tagline">{L ? "ঠকবেন না, জেনে উঠুন — বাস · মেট্রো · CNG · রিকশার সঠিক ভাড়া এক জায়গায়" : "Know before you ride — the right fare for bus, metro, CNG & rickshaw in one place"}</p>
             <div className="stats">
-              <div><strong>{PLACES.length}টি</strong><span>এলাকা</span></div>
-              <div><strong>{BUS_ROUTES.length}টি</strong><span>বাস করিডর</span></div>
-              <div><strong>{METRO_STATIONS.length}টি</strong><span>মেট্রো স্টেশন</span></div>
-              <div><strong>৪টি</strong><span>যানবাহন</span></div>
+              <div><strong>{PLACES.length}{L ? "টি" : ""}</strong><span>{L ? "এলাকা" : "areas"}</span></div>
+              <div><strong>{BUS_ROUTES.length}{L ? "টি" : ""}</strong><span>{L ? "বাস করিডর" : "bus corridors"}</span></div>
+              <div><strong>{METRO_STATIONS.length}{L ? "টি" : ""}</strong><span>{L ? "মেট্রো স্টেশন" : "metro stations"}</span></div>
+              <div><strong>{L ? "৪টি" : "4"}</strong><span>{L ? "যানবাহন" : "modes"}</span></div>
             </div>
           </div>
 
           <div className="hero-panel">
         <div className="search-card">
           <div className="pickers">
-            <PlacePicker label="কোথা থেকে" value={from} onChange={setFrom} exclude={to} />
+            <PlacePicker label={L ? "কোথা থেকে" : "From"} value={from} onChange={setFrom} exclude={to} lang={lang} />
             <button
               type="button"
               className="swap"
@@ -161,9 +210,10 @@ export default function App() {
             >
               ⇄
             </button>
-            <PlacePicker label="কোথায় যাবেন" value={to} onChange={setTo} exclude={from} />
+            <PlacePicker label={L ? "কোথায় যাবেন" : "To"} value={to} onChange={setTo} exclude={from} lang={lang} />
           </div>
           <div className="chips">
+            <button type="button" className={"fav-btn" + (isFav ? " on" : "")} onClick={toggleFav}>{isFav ? (L ? "⭐ প্রিয় রুট" : "⭐ Favourite") : (L ? "☆ প্রিয় করুন" : "☆ Save route")}</button>
             {POPULAR.map(([a, b]) => (
               <button
                 key={a + b}
@@ -174,36 +224,51 @@ export default function App() {
                   setTab("fare");
                 }}
               >
-                {findPlace(a).bn} → {findPlace(b).bn}
+                {nm(findPlace(a))} → {nm(findPlace(b))}
               </button>
             ))}
           </div>
+          {(favs.length > 0 || recent.some((k) => k !== pairKey)) && (
+            <div className="chips sub">
+              {favs.map((k) => { const [a, b] = k.split(">"); return (
+                <button key={"f" + k} type="button" onClick={() => { setFrom(a); setTo(b); setTab("fare"); }}>⭐ {nm(findPlace(a))} → {nm(findPlace(b))}</button> ); })}
+              {recent.filter((k) => k !== pairKey && !favs.includes(k)).slice(0, 3).map((k) => { const [a, b] = k.split(">"); return (
+                <button key={"r" + k} type="button" onClick={() => { setFrom(a); setTo(b); setTab("fare"); }}>🕘 {nm(findPlace(a))} → {nm(findPlace(b))}</button> ); })}
+            </div>
+          )}
         </div>
 
         <nav className="tabs" role="tablist">
-          <button role="tab" aria-selected={tab === "fare"} className={tab === "fare" ? "on" : ""} onClick={() => setTab("fare")}>ভাড়া দেখুন</button>
-          <button role="tab" aria-selected={tab === "check"} className={tab === "check" ? "on" : ""} onClick={() => setTab("check")}>বেশি নিয়েছে?</button>
-          <button role="tab" aria-selected={tab === "rates"} className={tab === "rates" ? "on" : ""} onClick={() => setTab("rates")}>সরকারি রেট</button>
+          <button role="tab" aria-selected={tab === "fare"} className={tab === "fare" ? "on" : ""} onClick={() => setTab("fare")}>{L ? "ভাড়া দেখুন" : "Check fare"}</button>
+          <button role="tab" aria-selected={tab === "check"} className={tab === "check" ? "on" : ""} onClick={() => setTab("check")}>{L ? "বেশি নিয়েছে?" : "Overcharged?"}</button>
+          <button role="tab" aria-selected={tab === "rates"} className={tab === "rates" ? "on" : ""} onClick={() => setTab("rates")}>{L ? "সরকারি রেট" : "Official rates"}</button>
         </nav>
           </div>
         </div>
       </header>
 
       <main>
+        {!voteX && (
+          <div className="vote-banner">
+            <span>{L ? "❤️ অ্যাপটা কাজে লাগছে? Arohon 'Build for Bangladesh'-এ ভাড়াঠিক? লিডারবোর্ডে ২ নম্বরে — একটা ভোট দিয়ে এগিয়ে দিন!" : "❤️ Finding this useful? VaraThik is #2 on the Arohon 'Build for Bangladesh' leaderboard — one vote takes it further!"}</span>
+            <a href="https://arohon.co/challenges/build-for-bangladesh" target="_blank" rel="noreferrer">{L ? "🗳️ ভোট দিন" : "🗳️ Vote now"}</a>
+            <button type="button" aria-label={L ? "বন্ধ করুন" : "Close"} onClick={() => { setVoteX(true); store.set("vt-vote-x", "1"); }}>×</button>
+          </div>
+        )}
         {tab === "fare" && (
           <section className="results" aria-live="polite">
             {from === to ? (
-              <p className="notice">শুরু আর গন্তব্য আলাদা এলাকা বেছে নিন।</p>
+              <p className="notice">{L ? "শুরু আর গন্তব্য আলাদা এলাকা বেছে নিন।" : "Please pick two different areas."}</p>
             ) : (
               <>
                 <h2>
-                  {fromPlace.bn} → {toPlace.bn}
-                  {cheapest && <span className="best"> · সবচেয়ে সস্তা: {cheapest.titleBn} ৳{cheapest.fare}</span>}
+                  {nm(fromPlace)} → {nm(toPlace)}
+                  {cheapest && <span className="best"> · {L ? "সবচেয়ে সস্তা" : "Cheapest"}: {L ? cheapest.titleBn : cheapest.titleEn} ৳{cheapest.fare}</span>}
                 </h2>
                 {results.some((r) => r.mode === "metro") && (
                   <label className="card-toggle">
                     <input type="checkbox" checked={metroCard} onChange={(e) => setMetroCard(e.currentTarget.checked)} />
-                    <span>💳 MRT Pass / Rapid Pass আছে — মেট্রো ভাড়ায় ১০% ছাড় দেখান</span>
+                    <span>{L ? "💳 MRT Pass / Rapid Pass আছে — মেট্রো ভাড়ায় ১০% ছাড় দেখান" : "💳 I have an MRT / Rapid Pass — show the 10% metro discount"}</span>
                   </label>
                 )}
                 <div className="cards-grid">
@@ -213,101 +278,121 @@ export default function App() {
                   const shown: ModeResult = {
                     ...r,
                     fare,
-                    fareNote: isMetro && metroCard ? `কার্ড ছাড়ে ৳${r.fare - fare} সাশ্রয়` : r.fareNote,
+                    fareNote: isMetro && metroCard ? (L ? `কার্ড ছাড়ে ৳${r.fare - fare} সাশ্রয়` : r.fareNote) : r.fareNote,
+                    fareNoteEn: isMetro && metroCard ? `Save ৳${r.fare - fare} with the card` : r.fareNoteEn,
                   };
                   return (
                   <article key={r.mode} className={"mode-card" + (r === cheapest ? " cheapest" : "")}>
                     <div className="mode-head">
                       <span className="mode-icon">{MODE_ICON[r.mode]}</span>
                       <div>
-                        <h3>{shown.titleBn}</h3>
-                        <p>{shown.detailBn}</p>
+                        <h3>{L ? shown.titleBn : shown.titleEn}</h3>
+                        <p>{L ? shown.detailBn : shown.detailEn}</p>
                       </div>
-                      {shown.official ? <span className="badge official">সরকারি রেট</span> : <span className="badge est">আনুমানিক</span>}
+                      {shown.official ? <span className="badge official">{L ? "সরকারি রেট" : "Official"}</span> : <span className="badge est">{L ? "আনুমানিক" : "Estimate"}</span>}
                     </div>
                     <div className="mode-stats">
                       <div className="fare">
                         ৳{shown.fare}
-                        {shown.fareNote && <small>{shown.fareNote}</small>}
+                        {(L ? shown.fareNote : shown.fareNoteEn) && <small>{L ? shown.fareNote : shown.fareNoteEn}</small>}
                     {shown.mode === "bus" && shown.fare % 5 !== 0 && (
-                      <small>বাসে সাধারণত ৳৫ রাউন্ডে ৳{round5(shown.fare)} নেওয়া হয়</small>
+                      <small>{L ? `বাসে সাধারণত ৳৫ রাউন্ডে ৳${round5(shown.fare)} নেওয়া হয়` : `Buses usually round to ৳${round5(shown.fare)}`}</small>
                     )}
                       </div>
                       <div className="meta">
-                        <span>{shown.km} কিমি</span>
-                        <span>~{shown.minutes} মিনিট</span>
+                        <span>{shown.km} {L ? "কিমি" : "km"}</span>
+                        <span>~{shown.minutes} {L ? "মিনিট" : "min"}</span>
                       </div>
                     </div>
                     {shown.buses && shown.buses.length > 0 && (
                       <div className="bus-list">
                         {shown.buses.slice(0, 3).map((b) => (
                           <div key={b.route.id} className="bus-row">
-                            <strong>{b.route.nameBn}</strong>
-                            <span>{b.directionStops.map((s) => findPlace(s).bn).join(" → ")}</span>
-                            <span className="bus-fare">৳{busFareForKm(b.km)} · {b.km} কিমি</span>
+                            <strong>{L ? b.route.nameBn : `${findPlace(b.directionStops[0]).en} — ${findPlace(b.directionStops[b.directionStops.length - 1]).en} corridor`}</strong>
+                            <span>{b.directionStops.map((s) => nm(findPlace(s))).join(" → ")}</span>
+                            <span className="bus-fare">৳{busFareForKm(b.km)} · {b.km} {L ? "কিমি" : "km"}</span>
                             <button
                               type="button"
                               className="chart-btn"
                               onClick={() => setChartRoute(chartRoute === b.route.id ? null : b.route.id)}
                             >
-                              📋 {chartRoute === b.route.id ? "চার্ট লুকান" : `${fromPlace.bn} থেকে পুরো রুটের ভাড়া চার্ট`}
+                              📋 {chartRoute === b.route.id ? (L ? "চার্ট লুকান" : "Hide chart") : (L ? `${fromPlace.bn} থেকে পুরো রুটের ভাড়া চার্ট` : `Full fare chart from ${fromPlace.en}`)}
                             </button>
                             {chartRoute === b.route.id && (
+                              <>
+                              <div className="route-line">
+                                {chartFor(b).map((row, i) => (
+                                  <div key={row.stopId} className={"rl-stop" + (row.stopId === to ? " dest" : "") + (i === 0 ? " start" : "")}>
+                                    <i></i><span>{nm(findPlace(row.stopId))}</span>
+                                  </div>
+                                ))}
+                              </div>
                               <table className="chart-table">
                                 <thead>
-                                  <tr><th>স্টপ</th><th>দূরত্ব</th><th>ভাড়া</th></tr>
+                                  <tr><th>{L ? "স্টপ" : "Stop"}</th><th>{L ? "দূরত্ব" : "Distance"}</th><th>{L ? "ভাড়া" : "Fare"}</th></tr>
                                 </thead>
                                 <tbody>
                                   {chartFor(b).map((row) => (
                                     <tr key={row.stopId} className={row.stopId === to ? "dest" : ""}>
-                                      <td>{findPlace(row.stopId).bn}</td>
-                                      <td>{row.km} কিমি</td>
+                                      <td>{nm(findPlace(row.stopId))}</td>
+                                      <td>{row.km} {L ? "কিমি" : "km"}</td>
                                       <td>৳{row.fare}</td>
                                     </tr>
                                   ))}
                                 </tbody>
                               </table>
+                              </>
                             )}
-                            {chartRoute === b.route.id && <p className="chart-note">BRTA রেটে তৈরি স্টপ-ভিত্তিক চার্ট · বাসে ভাড়া সাধারণত ৳৫-এর রাউন্ডে নেওয়া হয়</p>}
+                            {chartRoute === b.route.id && <p className="chart-note">{L ? "BRTA রেটে তৈরি স্টপ-ভিত্তিক চার্ট · বাসে ভাড়া সাধারণত ৳৫-এর রাউন্ডে নেওয়া হয়" : "Stop-by-stop chart at the BRTA rate · buses usually round fares to the nearest ৳5"}</p>}
                           </div>
                         ))}
                       </div>
                     )}
+                    {r.mode === "metro" && <p className="sched">🕒 {L ? METRO_SCHEDULE.bn : METRO_SCHEDULE.en}</p>}
                     {r.official && (
-                      <button type="button" className="share-btn" onClick={() => onShareCard(shown)}>
-                        📤 ভাড়া কার্ড শেয়ার করুন — কন্ডাক্টর/ড্রাইভারকে দেখান
-                      </button>
+                      <div className="card-actions">
+                        <button type="button" className="share-btn" onClick={() => onShareCard(shown)}>
+                          {L ? "📤 ভাড়া কার্ড শেয়ার করুন — কন্ডাক্টর/ড্রাইভারকে দেখান" : "📤 Share fare card — show the conductor/driver"}
+                        </button>
+                        <button type="button" className="wa-btn" onClick={() => onWhatsApp(shown)}>💬 WhatsApp</button>
+                      </div>
                     )}
                   </article>
                   );
                 })}
                 </div>
                 <div className="how">
-                  <div><strong>১ · রুট বাছুন</strong><span>যেকোনো দুই এলাকা — {PLACES.length}টি জায়গা থেকে</span></div>
-                  <div><strong>২ · সঠিক ভাড়া দেখুন</strong><span>BRTA ও DMTCL-এর সরকারি রেটে হিসাব</span></div>
-                  <div><strong>৩ · কার্ড দেখান</strong><span>ভাড়া কার্ড শেয়ার করে বেশি ভাড়া ঠেকান</span></div>
+                  <div><strong>{L ? "১ · রুট বাছুন" : "1 · Pick a route"}</strong><span>{L ? `যেকোনো দুই এলাকা — ${PLACES.length}টি জায়গা থেকে` : `Any two areas — from ${PLACES.length} places`}</span></div>
+                  <div><strong>{L ? "২ · সঠিক ভাড়া দেখুন" : "2 · See the right fare"}</strong><span>{L ? "BRTA ও DMTCL-এর সরকারি রেটে হিসাব" : "Calculated at official BRTA & DMTCL rates"}</span></div>
+                  <div><strong>{L ? "৩ · কার্ড দেখান" : "3 · Show the card"}</strong><span>{L ? "ভাড়া কার্ড শেয়ার করে বেশি ভাড়া ঠেকান" : "Share the fare card to stop overcharging"}</span></div>
                 </div>
                 {cheapest && (
                   <div className="monthly">
-                    <strong>🧮 প্রতিদিন এই রুটে যাতায়াত করলে</strong>
+                    <strong>{L ? "🧮 প্রতিদিন এই রুটে যাতায়াত করলে" : "🧮 If you commute this route daily"}</strong>
                     <p>
-                      {cheapest.titleBn}: একমুখী ৳{cheapest.fare} · যাওয়া-আসা ৳{cheapest.fare * 2}/দিন ·{" "}
-                      মাসে (২৬ কর্মদিবস) <b>৳{cheapest.fare * 52}</b>
+                      {L ? cheapest.titleBn : cheapest.titleEn}: {L ? `একমুখী ৳${cheapest.fare} · যাওয়া-আসা ৳${cheapest.fare * 2}/দিন · মাসে (২৬ কর্মদিবস)` : `one-way ৳${cheapest.fare} · return ৳${cheapest.fare * 2}/day · monthly (26 workdays)`} <b>৳{cheapest.fare * 52}</b>
                     </p>
                     {(() => {
                       const m = results.find((x) => x.mode === "metro");
                       if (!m) return null;
                       const cardFare = Math.round(m.fare * 0.9);
                       return metroCard ? (
-                        <p>মেট্রো কার্ডে: যাওয়া-আসা ৳{cardFare * 2}/দিন · মাসে ৳{cardFare * 52} — কার্ড ছাড়াই বাঁচছে প্রতি মাসে ৳{(m.fare - cardFare) * 52}।</p>
+                        <p>{L ? `মেট্রো কার্ডে: যাওয়া-আসা ৳${cardFare * 2}/দিন · মাসে ৳${cardFare * 52} — কার্ড ছাড়াই বাঁচছে প্রতি মাসে ৳${(m.fare - cardFare) * 52}।` : `With a metro card: return ৳${cardFare * 2}/day · ৳${cardFare * 52}/month — the card already saves you ৳${(m.fare - cardFare) * 52} every month.`}</p>
                       ) : (
-                        <p>টিপস: মেট্রোতে MRT/Rapid Pass নিলে মাসে আরও ৳{(m.fare - cardFare) * 52} বাঁচবে (প্রতি যাত্রায় ১০% ছাড়)।</p>
+                        <p>{L ? `টিপস: মেট্রোতে MRT/Rapid Pass নিলে মাসে আরও ৳${(m.fare - cardFare) * 52} বাঁচবে (প্রতি যাত্রায় ১০% ছাড়)।` : `Tip: an MRT/Rapid Pass saves another ৳${(m.fare - cardFare) * 52} a month on the metro (10% off every ride).`}</p>
                       );
                     })()}
                   </div>
                 )}
+                {transfer && busResult && (!busResult.buses?.length || transfer.totalKm < busResult.km) && (
+                  <div className="transfer">
+                    <strong>{L ? "🔁 বদলি করে গেলে" : "🔁 With one transfer"}</strong>
+                    <p>{L ? `${transfer.firstRouteBn}: ${fromPlace.bn} → ${transfer.transferBn} (৳${transfer.fareFirst}) · তারপর ${transfer.secondRouteBn}: ${transfer.transferBn} → ${toPlace.bn} (৳${transfer.fareSecond})` : `${fromPlace.en} → ${transfer.transferEn} (৳${transfer.fareFirst}), then ${transfer.transferEn} → ${toPlace.en} (৳${transfer.fareSecond})`}</p>
+                    <p>{L ? `মোট ভাড়া ৳${transfer.totalFare} (দুই টিকিট) · মোট দূরত্ব ${transfer.totalKm} কিমি` : `Total fare ৳${transfer.totalFare} (two tickets) · ${transfer.totalKm} km in all`}</p>
+                  </div>
+                )}
                 <p className="fineprint">
-                  বাসের ভাড়া BRTA রেটে (৳২.৭০/কিমি, সর্বনিম্ন ৳১০) হিসাব করা। কোনো কোনো অপারেটরের নিজস্ব চার্টে ১–২ টাকা এদিক-সেদিক হতে পারে।
+                  {L ? "বাসের ভাড়া BRTA রেটে (৳২.৭০/কিমি, সর্বনিম্ন ৳১০) হিসাব করা। কোনো কোনো অপারেটরের নিজস্ব চার্টে ১–২ টাকা এদিক-সেদিক হতে পারে।" : "Bus fares are calculated at the BRTA rate (৳2.70/km, minimum ৳10). Some operators' own charts may differ by a taka or two."}
                 </p>
               </>
             )}
@@ -316,63 +401,63 @@ export default function App() {
 
         {tab === "check" && (
           <section className="check">
-            <h2>{fromPlace.bn} → {toPlace.bn} — কত নেওয়া উচিত ছিল?</h2>
+            <h2>{nm(fromPlace)} → {nm(toPlace)} — {L ? "কত নেওয়া উচিত ছিল?" : "What should it have cost?"}</h2>
             <div className="check-modes">
-              <button className={chargedMode === "bus" ? "on" : ""} onClick={() => setChargedMode("bus")}>🚌 বাস</button>
-              <button className={chargedMode === "cng" ? "on" : ""} onClick={() => setChargedMode("cng")}>🛺 CNG (মিটার)</button>
-              {metroCheck && <button className={chargedMode === "metro" ? "on" : ""} onClick={() => setChargedMode("metro")}>🚇 মেট্রো</button>}
-              <button className={chargedMode === "rickshaw" ? "on" : ""} onClick={() => setChargedMode("rickshaw")}>🚲 রিকশা</button>
+              <button className={chargedMode === "bus" ? "on" : ""} onClick={() => setChargedMode("bus")}>{L ? "🚌 বাস" : "🚌 Bus"}</button>
+              <button className={chargedMode === "cng" ? "on" : ""} onClick={() => setChargedMode("cng")}>{L ? "🛺 CNG (মিটার)" : "🛺 CNG (Meter)"}</button>
+              {metroCheck && <button className={chargedMode === "metro" ? "on" : ""} onClick={() => setChargedMode("metro")}>{L ? "🚇 মেট্রো" : "🚇 Metro"}</button>}
+              <button className={chargedMode === "rickshaw" ? "on" : ""} onClick={() => setChargedMode("rickshaw")}>{L ? "🚲 রিকশা" : "🚲 Rickshaw"}</button>
             </div>
             <label className="charged-label">
-              আপনার কাছ থেকে কত টাকা নিয়েছে?
+              {L ? "আপনার কাছ থেকে কত টাকা নিয়েছে?" : "How much were you charged?"}
               <input
                 inputMode="numeric"
                 pattern="[0-9]*"
-                placeholder="যেমন: ৫০"
+                placeholder={L ? "যেমন: ৫০" : "e.g. 50"}
                 value={charged}
                 onChange={(e) => setCharged(digitsOnly(e.currentTarget.value))}
               />
             </label>
             {chargedMode === "cng" && (
               <label className="charged-label">
-                জ্যামে কত মিনিট দাঁড়িয়েছিল? (ঐচ্ছিক — মিটারে অপেক্ষা-চার্জ বৈধ)
+                {L ? "জ্যামে কত মিনিট দাঁড়িয়েছিল? (ঐচ্ছিক — মিটারে অপেক্ষা-চার্জ বৈধ)" : "Minutes stuck in traffic? (optional — meter waiting charge is legal)"}
                 <input
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  placeholder="যেমন: ১০"
+                  placeholder={L ? "যেমন: ১০" : "e.g. 10"}
                   value={waitMin}
                   onChange={(e) => setWaitMin(digitsOnly(e.currentTarget.value))}
                 />
               </label>
             )}
-            {charged === "" && <p className="fineprint">সংখ্যায় টাকার পরিমাণ লিখুন — বাংলা (৫০) বা ইংরেজি (50), দুটোই চলবে।</p>}
+            {charged === "" && <p className="fineprint">{L ? "সংখ্যায় টাকার পরিমাণ লিখুন — বাংলা (৫০) বা ইংরেজি (50), দুটোই চলবে।" : "Type the amount — Bengali (৫০) or English (50) digits both work."}</p>}
             {extra !== null && chargedMode !== "rickshaw" && (
               <>
               <div className="bars">
                 <div className="bar-row">
-                  <span>ন্যায্য ভাড়া ৳{fairForCheck}</span>
+                  <span>{L ? "ন্যায্য ভাড়া" : "Fair fare"} ৳{fairForCheck}</span>
                   <div className="bar"><i style={{ width: `${Math.max(8, Math.round((fairForCheck / Math.max(fairForCheck, chargedNum)) * 100))}%` }} /></div>
                 </div>
                 <div className="bar-row">
-                  <span>নিয়েছে ৳{chargedNum}</span>
+                  <span>{L ? "নিয়েছে" : "Charged"} ৳{chargedNum}</span>
                   <div className={"bar" + (extra > 0 ? " over" : "")}><i style={{ width: `${Math.max(8, Math.round((chargedNum / Math.max(fairForCheck, chargedNum)) * 100))}%` }} /></div>
                 </div>
               </div>
               <div className={"verdict " + (extra > 0 && chargedNum > round5(fairForCheck) ? "bad" : "good")} aria-live="polite">
                 {extra <= 0 ? (
                   <>
-                    <strong>ভাড়া ঠিক আছে ✓</strong>
-                    <p>সরকারি ভাড়া ৳{fairForCheck} ({checkKm} কিমি) — আপনার দেওয়া ভাড়া এর বেশি নয়।{chargedMode === "metro" && " কার্ড (MRT/Rapid Pass) থাকলে আরও ১০% কম লাগত।"}</p>
+                    <strong>{L ? "ভাড়া ঠিক আছে ✓" : "The fare was fair ✓"}</strong>
+                    <p>{L ? `সরকারি ভাড়া ৳${fairForCheck} (${checkKm} কিমি) — আপনার দেওয়া ভাড়া এর বেশি নয়।` : `The official fare is ৳${fairForCheck} (${checkKm} km) — you paid no more than that.`}{chargedMode === "metro" && (L ? " কার্ড (MRT/Rapid Pass) থাকলে আরও ১০% কম লাগত।" : " With an MRT/Rapid Pass card it would have been 10% less.")}</p>
                   </>
                 ) : chargedNum <= round5(fairForCheck) ? (
                   <>
-                    <strong>প্রায় ঠিক আছে ✓</strong>
-                    <p>সরকারি হিসাব ৳{fairForCheck} ({checkKm} কিমি) — বাসে ভাড়া সাধারণত ৳৫-এ রাউন্ড হয়, তাই ৳{round5(fairForCheck)} পর্যন্ত স্বাভাবিক।</p>
+                    <strong>{L ? "প্রায় ঠিক আছে ✓" : "Close enough ✓"}</strong>
+                    <p>{L ? `সরকারি হিসাব ৳${fairForCheck} (${checkKm} কিমি) — বাসে ভাড়া সাধারণত ৳৫-এ রাউন্ড হয়, তাই ৳${round5(fairForCheck)} পর্যন্ত স্বাভাবিক।` : `The official fare is ৳${fairForCheck} (${checkKm} km) — buses usually round to the nearest ৳5, so up to ৳${round5(fairForCheck)} is normal.`}</p>
                   </>
                 ) : (
                   <>
-                    <strong>৳{extra} বেশি নিয়েছে!</strong>
-                    <p>সরকারি ভাড়া ছিল ৳{fairForCheck} ({checkKm} কিমি)। পরের বার ওঠার আগেই ভাড়া কার্ডটা দেখিয়ে নিন।</p>
+                    <strong>{L ? `৳${extra} বেশি নিয়েছে!` : `Overcharged by ৳${extra}!`}</strong>
+                    <p>{L ? `সরকারি ভাড়া ছিল ৳${fairForCheck} (${checkKm} কিমি)। পরের বার ওঠার আগেই ভাড়া কার্ডটা দেখিয়ে নিন।` : `The official fare was ৳${fairForCheck} (${checkKm} km). Next time, show the fare card before you ride.`}</p>
                     <button
                       type="button"
                       className="share-btn"
@@ -380,15 +465,17 @@ export default function App() {
                         onShareCard({
                           mode: chargedMode,
                           titleBn: chargedMode === "bus" ? "লোকাল বাস" : chargedMode === "cng" ? "CNG অটোরিকশা (মিটার)" : "মেট্রোরেল (MRT-6)",
+                          titleEn: chargedMode === "bus" ? "Local Bus" : chargedMode === "cng" ? "CNG Auto-rickshaw (Meter)" : "Metro Rail (MRT-6)",
                           fare: fairForCheck,
                           km: checkKm,
                           minutes: 0,
                           official: true,
                           detailBn: "",
+                          detailEn: "",
                         })
                       }
                     >
-                      📤 সঠিক ভাড়ার কার্ড শেয়ার করুন
+                      {L ? "📤 সঠিক ভাড়ার কার্ড শেয়ার করুন" : "📤 Share the correct fare card"}
                     </button>
                   </>
                 )}
@@ -399,18 +486,18 @@ export default function App() {
               <div className={"verdict " + (chargedNum > rickRange.high ? "bad" : "good")} aria-live="polite">
                 {chargedNum > rickRange.high ? (
                   <>
-                    <strong>বাজার রেঞ্জের চেয়ে ৳{chargedNum - rickRange.high} বেশি!</strong>
-                    <p>এই দূরত্বে ({checkKm} কিমি) চলতি বাজার রেঞ্জ ৳{rickRange.low}–{rickRange.high}। রিকশার সরকারি রেট নেই — ওঠার আগে দর ঠিক করে নিন।</p>
+                    <strong>{L ? `বাজার রেঞ্জের চেয়ে ৳${chargedNum - rickRange.high} বেশি!` : `৳${chargedNum - rickRange.high} above the market range!`}</strong>
+                    <p>{L ? `এই দূরত্বে (${checkKm} কিমি) চলতি বাজার রেঞ্জ ৳${rickRange.low}–${rickRange.high}। রিকশার সরকারি রেট নেই — ওঠার আগে দর ঠিক করে নিন।` : `For this distance (${checkKm} km) the going range is ৳${rickRange.low}–${rickRange.high}. Rickshaws have no official rate — agree the fare before you ride.`}</p>
                   </>
                 ) : chargedNum < rickRange.low ? (
                   <>
-                    <strong>রেঞ্জের চেয়েও কমে পেয়েছেন ✓</strong>
-                    <p>এই দূরত্বে ({checkKm} কিমি) চলতি বাজার রেঞ্জ ৳{rickRange.low}–{rickRange.high}।</p>
+                    <strong>{L ? "রেঞ্জের চেয়েও কমে পেয়েছেন ✓" : "You paid below the range ✓"}</strong>
+                    <p>{L ? `এই দূরত্বে (${checkKm} কিমি) চলতি বাজার রেঞ্জ ৳${rickRange.low}–${rickRange.high}।` : `For this distance (${checkKm} km) the going range is ৳${rickRange.low}–${rickRange.high}.`}</p>
                   </>
                 ) : (
                   <>
-                    <strong>বাজার রেঞ্জের মধ্যে আছে ✓</strong>
-                    <p>এই দূরত্বে ({checkKm} কিমি) চলতি বাজার রেঞ্জ ৳{rickRange.low}–{rickRange.high} — আপনার ভাড়া এর মধ্যেই।</p>
+                    <strong>{L ? "বাজার রেঞ্জের মধ্যে আছে ✓" : "Within the market range ✓"}</strong>
+                    <p>{L ? `এই দূরত্বে (${checkKm} কিমি) চলতি বাজার রেঞ্জ ৳${rickRange.low}–${rickRange.high} — আপনার ভাড়া এর মধ্যেই।` : `For this distance (${checkKm} km) the going range is ৳${rickRange.low}–${rickRange.high} — your fare is inside it.`}</p>
                   </>
                 )}
               </div>
@@ -420,25 +507,30 @@ export default function App() {
 
         {tab === "rates" && (
           <section className="rates">
-            <h2>সরকারি ভাড়ার রেট ও সূত্র</h2>
+            <h2>{L ? "সরকারি ভাড়ার রেট ও সূত্র" : "Official fare rates & sources"}</h2>
             {RATE_SOURCES.map((r) => (
               <article key={r.mode} className="rate-card">
                 <h3>
-                  {r.labelBn}
-                  {r.official ? <span className="badge official">অফিসিয়াল</span> : <span className="badge est">অফিসিয়াল নয়</span>}
+                  {L ? r.labelBn : r.labelEn}
+                  {r.official ? <span className="badge official">{L ? "অফিসিয়াল" : "Official"}</span> : <span className="badge est">{L ? "অফিসিয়াল নয়" : "Not official"}</span>}
                 </h3>
-                <p className="formula">{r.formulaBn}</p>
-                <p className="source">সূত্র: {r.source}</p>
-                <p className="source">কার্যকর: {r.effectiveFrom}</p>
+                <p className="formula">{L ? r.formulaBn : r.formulaEn}</p>
+                <p className="source">{L ? "সূত্র" : "Source"}: {r.source}</p>
+                <p className="source">{L ? "কার্যকর" : "Effective"}: {r.effectiveFrom}</p>
               </article>
             ))}
             <article className="rate-card">
-              <h3>মেট্রো কার্ড ছাড় <span className="badge official">অফিসিয়াল</span></h3>
-              <p className="formula">MRT Pass / Rapid Pass-এ সব মেট্রো ভাড়ায় ১০% ছাড়</p>
-              <p className="source">সূত্র: DMTCL / Rapid Pass (DTCA) — যেমন পূর্ণ রুট ৳১০০-এর বদলে ৳৯০</p>
+              <h3>{L ? "মেট্রো কার্ড ছাড়" : "Metro card discount"} <span className="badge official">{L ? "অফিসিয়াল" : "Official"}</span></h3>
+              <p className="formula">{L ? "MRT Pass / Rapid Pass-এ সব মেট্রো ভাড়ায় ১০% ছাড়" : "10% off every metro fare with MRT Pass / Rapid Pass"}</p>
+              <p className="source">{L ? "সূত্র: DMTCL / Rapid Pass (DTCA) — যেমন পূর্ণ রুট ৳১০০-এর বদলে ৳৯০" : "Source: DMTCL / Rapid Pass (DTCA) — e.g. the full route costs ৳90 instead of ৳100"}</p>
+            </article>
+            <article className="rate-card">
+              <h3>{L ? "মেট্রোর সময়সূচি" : "Metro schedule"} <span className="badge official">{L ? "অফিসিয়াল" : "Official"}</span></h3>
+              <p className="formula">{L ? METRO_SCHEDULE.bn : METRO_SCHEDULE.en}</p>
+              <p className="source">{L ? "সূত্র: DMTCL প্রকাশিত সময়সূচি (পরিবর্তন হতে পারে)" : "Source: DMTCL published timetable (subject to change)"}</p>
             </article>
             <p className="fineprint">
-              ভাড়াঠিক কোনো সরকারি প্রতিষ্ঠান নয়। ভাড়াগুলো উপরের প্রকাশিত সরকারি রেট থেকে হিসাব করা — যাচাই করতে সূত্রের ওয়েবসাইট দেখুন।
+              {L ? "ভাড়াঠিক কোনো সরকারি প্রতিষ্ঠান নয়। ভাড়াগুলো উপরের প্রকাশিত সরকারি রেট থেকে হিসাব করা — যাচাই করতে সূত্রের ওয়েবসাইট দেখুন।" : "VaraThik is not a government body. Fares are calculated from the published official rates above — check the source websites to verify."}
             </p>
           </section>
         )}
@@ -448,16 +540,16 @@ export default function App() {
         <div className="qr-block">
           <img src={import.meta.env.BASE_URL + "qr.svg"} alt="ভাড়াঠিক অ্যাপের QR কোড" width="92" height="92" />
           <div>
-            <strong>মোবাইলে স্ক্যান করে খুলুন</strong>
-            <span>যাত্রাপথে ফোনেই ভাড়া যাচাই করুন — ইন্সটল ছাড়াই চলে</span>
+            <strong>{L ? "মোবাইলে স্ক্যান করে খুলুন" : "Scan to open on your phone"}</strong>
+            <span>{L ? "যাত্রাপথে ফোনেই ভাড়া যাচাই করুন — ইন্সটল ছাড়াই চলে" : "Check fares on the go — no install needed"}</span>
           </div>
         </div>
-        <p>ভাড়াঠিক? — Build for Bangladesh চ্যালেঞ্জের জন্য তৈরি · ডেটা: BRTA, DMTCL, OpenStreetMap</p>
-        <p className="places-count">এখন {PLACES.length}টি এলাকা · {BUS_ROUTES.length}টি বাস করিডর · ঢাকা শহর · <a href="https://github.com/cryptowebbuild/varathik" target="_blank" rel="noreferrer">GitHub-এ কোড দেখুন</a></p>
+        <p>{L ? "ভাড়াঠিক? — Build for Bangladesh চ্যালেঞ্জের জন্য তৈরি · ডেটা: BRTA, DMTCL, OpenStreetMap" : "VaraThik — built for the Build for Bangladesh challenge · Data: BRTA, DMTCL, OpenStreetMap"}</p>
+        <p className="places-count">{L ? `এখন ${PLACES.length}টি এলাকা · ${BUS_ROUTES.length}টি বাস করিডর · ঢাকা শহর · ` : `Now ${PLACES.length} areas · ${BUS_ROUTES.length} bus corridors · Dhaka · `}<a href="https://github.com/cryptowebbuild/varathik" target="_blank" rel="noreferrer">{L ? "GitHub-এ কোড দেখুন" : "View the code on GitHub"}</a></p>
         <a className="credit" href="https://cryptowebbuild.com/" target="_blank" rel="noreferrer">
-          <span className="credit-top">⚡ তৈরি ও পরিচালনায়</span>
+          <span className="credit-top">{L ? "⚡ তৈরি ও পরিচালনায়" : "⚡ Built & run by"}</span>
           <strong>CryptoWebBuild.com</strong>
-          <span className="credit-sub">Sub-second ওয়েবসাইট · ১-ক্লিক ই-কমার্স স্টোর · 100/100 SEO</span>
+          <span className="credit-sub">{L ? "Sub-second ওয়েবসাইট · ১-ক্লিক ই-কমার্স স্টোর · 100/100 SEO" : "Sub-second websites · 1-click e-commerce stores · 100/100 SEO"}</span>
         </a>
       </footer>
     </div>
