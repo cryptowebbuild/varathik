@@ -95,8 +95,11 @@ export const PLACES: Place[] = [
   { id: "shahjadpur", bn: "শাহজাদপুর", en: "Shahjadpur", aliases: ["shahjadpur", "শাহজাদপুর"], lat: 23.79, lng: 90.4228 },
   { id: "sat-rasta", bn: "সাতরাস্তা (তেজগাঁও)", en: "Sat Rasta", aliases: ["sat rasta", "সাতরাস্তা"], lat: 23.7597, lng: 90.3987 }
 ];
-export function findPlace(id: string): Place {
-  return PLACES.find((pl) => pl.id === id) ?? PLACES[0];
+// জায়গা খোঁজা — অবৈধ id হলে undefined (আগে চুপচাপ PLACES[0] ফিরিয়ে ভুল ভাড়া দেখাত)।
+// হিসাবের পথে (computeResults ইত্যাদি) কলার এই undefined গার্ড করে; শুধু প্রদর্শনের
+// জায়গায় App-এর fp() হেল্পার আগের জায়গায় ফলব্যাক করে, কারণ সেখানে id সবসময় বৈধ।
+export function findPlace(id: string): Place | undefined {
+  return PLACES.find((pl) => pl.id === id);
 }
 
 export function searchPlaces(q: string): Place[] {
