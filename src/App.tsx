@@ -1,3 +1,7 @@
+// ভাড়াঠিক? — মূল অ্যাপ কম্পোনেন্ট।
+// গঠন: ওপরে ছোট হেল্পার → PlacePicker → App (স্টেট → হিসাব → হ্যান্ডলার → JSX-এর ধাপগুলো)।
+// প্রতিটা বড় অংশের আগে বাংলা বিভাজক-মন্তব্য দেওয়া আছে, যাতে যে কেউ সহজে পড়তে পারে।
+
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { PLACES, findPlace, searchPlaces, type Place } from "./data/places";
 import { BUS_ROUTES, chartFor } from "./data/busRoutes";
@@ -49,13 +53,31 @@ function PlacePicker({
   const L = lang === "bn";
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const place = findPlace(value);
+
+  // ড্রপডাউন খোলা থাকলে বাইরে ক্লিক বা Escape চাপলেই বন্ধ হবে
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open ]);
   const results = useMemo(() => searchPlaces(q).filter((p) => p.id !== exclude).slice(0, 8), [q, exclude]);
 
   return (
-    <div className="picker">
+    <div className="picker" ref={rootRef}>
       <label>{label}</label>
-      <button type="button" className="picker-btn" onClick={() => setOpen(!open)}>
+      <button type="button" className="picker-btn" aria-expanded={open} onClick={() => setOpen(!open)}>
         <span className="picker-name">{L ? place.bn : place.en}</span>
         <span className="picker-en">{L ? place.en : place.bn} ▾</span>
       </button>
@@ -143,6 +165,10 @@ export default function App() {
   const toPlace = findPlace(to);
 
   const metroCheck = fromPlace.metro && toPlace.metro ? metroFare(fromPlace.metro, toPlace.metro) : null;
+  // নতুন রুটে মেট্রো না থাকলে চেক-ট্যাবের মোড বাসে ফিরিয়ে দাও (না হলে ভাড়া ৳০ ধরে ভুল রায় আসত)
+  useEffect(() => {
+    if (!metroCheck && chargedMode === "metro") setChargedMode("bus");
+  }, [metroCheck, chargedMode]);
   const checkKm = chargedMode === "bus" ? busKmFor(from, to) : chargedMode === "metro" && metroCheck ? metroCheck.km : roadKm(from, to);
   const waitNum = parseInt(waitMin || "0", 10) || 0;
   const rickRange = rickshawRangeForKm(checkKm);
@@ -248,6 +274,7 @@ export default function App() {
       </header>
 
       <main>
+        {/* ===== ভোটের আহ্বান ব্যানার ===== */}
         {!voteX && (
           <div className="vote-banner">
             <span>{L ? "❤️ অ্যাপটা কাজে লাগছে? Arohon 'Build for Bangladesh'-এ ভাড়াঠিক? লিডারবোর্ডে ২ নম্বরে — একটা ভোট দিয়ে এগিয়ে দিন!" : "❤️ Finding this useful? VaraThik is #2 on the Arohon 'Build for Bangladesh' leaderboard — one vote takes it further!"}</span>
@@ -255,6 +282,7 @@ export default function App() {
             <button type="button" aria-label={L ? "বন্ধ করুন" : "Close"} onClick={() => { setVoteX(true); store.set("vt-vote-x", "1"); }}>×</button>
           </div>
         )}
+        {/* ===== ট্যাব ১: ভাড়া দেখুন ===== */}
         {tab === "fare" && (
           <section className="results" aria-live="polite">
             {from === to ? (
@@ -283,6 +311,7 @@ export default function App() {
                   };
                   return (
                   <article key={r.mode} className={"mode-card" + (r === cheapest ? " cheapest" : "")}>
+                    {r === cheapest && <span className="best-pill">⭐ {L ? "সবচেয়ে সস্তা" : "Cheapest"}</span>}
                     <div className="mode-head">
                       <span className="mode-icon">{MODE_ICON[r.mode]}</span>
                       <div>
@@ -361,6 +390,10 @@ export default function App() {
                   );
                 })}
                 </div>
+                <div className="trust">
+                  <span>🛡️ {L ? "সূত্র: BRTA · DMTCL · Rapid Pass" : "Sources: BRTA · DMTCL · Rapid Pass"}</span>
+                  <span>{L ? "রেট আপডেট: নভেম্বর ২০২৬" : "Rates updated: November 2026"}</span>
+                </div>
                 <div className="how">
                   <div><strong>{L ? "১ · রুট বাছুন" : "1 · Pick a route"}</strong><span>{L ? `যেকোনো দুই এলাকা — ${PLACES.length}টি জায়গা থেকে` : `Any two areas — from ${PLACES.length} places`}</span></div>
                   <div><strong>{L ? "২ · সঠিক ভাড়া দেখুন" : "2 · See the right fare"}</strong><span>{L ? "BRTA ও DMTCL-এর সরকারি রেটে হিসাব" : "Calculated at official BRTA & DMTCL rates"}</span></div>
@@ -384,7 +417,8 @@ export default function App() {
                     })()}
                   </div>
                 )}
-                {transfer && busResult && (!busResult.buses?.length || transfer.totalKm < busResult.km) && (
+                {/* বদলি কার্ড: সরাসরি বাস না থাকলে, অথবা বদলিতে ভাড়া কম হলেই শুধু দেখাও */}
+                {transfer && busResult && (!busResult.buses?.length || transfer.totalFare < busResult.fare) && (
                   <div className="transfer">
                     <strong>{L ? "🔁 বদলি করে গেলে" : "🔁 With one transfer"}</strong>
                     <p>{L ? `${transfer.firstRouteBn}: ${fromPlace.bn} → ${transfer.transferBn} (৳${transfer.fareFirst}) · তারপর ${transfer.secondRouteBn}: ${transfer.transferBn} → ${toPlace.bn} (৳${transfer.fareSecond})` : `${fromPlace.en} → ${transfer.transferEn} (৳${transfer.fareFirst}), then ${transfer.transferEn} → ${toPlace.en} (৳${transfer.fareSecond})`}</p>
@@ -399,6 +433,7 @@ export default function App() {
           </section>
         )}
 
+        {/* ===== ট্যাব ২: বেশি নিয়েছে? ===== */}
         {tab === "check" && (
           <section className="check">
             <h2>{nm(fromPlace)} → {nm(toPlace)} — {L ? "কত নেওয়া উচিত ছিল?" : "What should it have cost?"}</h2>
@@ -505,6 +540,7 @@ export default function App() {
           </section>
         )}
 
+        {/* ===== ট্যাব ৩: সরকারি রেট ===== */}
         {tab === "rates" && (
           <section className="rates">
             <h2>{L ? "সরকারি ভাড়ার রেট ও সূত্র" : "Official fare rates & sources"}</h2>
@@ -536,6 +572,7 @@ export default function App() {
         )}
       </main>
 
+      {/* ===== ফুটার: QR, কৃতিত্ব ===== */}
       <footer>
         <div className="qr-block">
           <img src={import.meta.env.BASE_URL + "qr.svg"} alt="ভাড়াঠিক অ্যাপের QR কোড" width="92" height="92" />
