@@ -83,11 +83,12 @@ function PlacePicker({
       </button>
       {open && (
         <div className="picker-pop">
+          {/* টেক্সট ইনপুটে onChange নয়, onInput: Preact-এ onChange DOM 'change' ইভেন্টে (blur-এ) বাঁধে — টাইপের সঙ্গে সঙ্গে আপডেট পেতে onInput লাগে */}
           <input
             autoFocus
             placeholder={L ? "এলাকা খুঁজুন… (Mirpur, মিরপুর, mirpur 10)" : "Search area… (Mirpur, মিরপুর)"}
             value={q}
-            onChange={(e) => setQ(e.currentTarget.value)}
+            onInput={(e) => setQ(e.currentTarget.value)}
           />
           <ul>
             {results.map((p) => (
@@ -134,7 +135,12 @@ export default function App() {
   const [metroCard, setMetroCard] = useState(false);
   const [chartRoute, setChartRoute] = useState<string | null>(null);
   const cardBusy = useRef(false);
-  const [lang, setLang] = useState<Lang>(() => (params.get("lang") === "en" || store.get("vt-lang") === "en" ? "en" : "bn"));
+  const [lang, setLang] = useState<Lang>(() => {
+    // লিংকে ?lang= থাকলে সেটাই চূড়ান্ত; না থাকলে আগের পছন্দ (localStorage)
+    const p = params.get("lang");
+    if (p === "en" || p === "bn") return p;
+    return store.get("vt-lang") === "en" ? "en" : "bn";
+  });
   const [theme, setTheme] = useState(() => (store.get("vt-theme") === "dark" ? "dark" : "light"));
   const [favs, setFavs] = useState<string[]>(() => store.getList("vt-favs"));
   const [recent, setRecent] = useState<string[]>(() => store.getList("vt-recent"));
@@ -461,7 +467,7 @@ export default function App() {
                 pattern="[0-9]*"
                 placeholder={L ? "যেমন: ৫০" : "e.g. 50"}
                 value={charged}
-                onChange={(e) => setCharged(digitsOnly(e.currentTarget.value))}
+                onInput={(e) => setCharged(digitsOnly(e.currentTarget.value))}
               />
             </label>
             {chargedMode === "cng" && (
@@ -472,7 +478,7 @@ export default function App() {
                   pattern="[0-9]*"
                   placeholder={L ? "যেমন: ১০" : "e.g. 10"}
                   value={waitMin}
-                  onChange={(e) => setWaitMin(digitsOnly(e.currentTarget.value))}
+                  onInput={(e) => setWaitMin(digitsOnly(e.currentTarget.value))}
                 />
               </label>
             )}
