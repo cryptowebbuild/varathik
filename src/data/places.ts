@@ -102,10 +102,15 @@ export function findPlace(id: string): Place {
 export function searchPlaces(q: string): Place[] {
   const needle = q.trim().toLowerCase();
   if (!needle) return PLACES;
-  return PLACES.filter(
+  const raw = q.trim();
+  const hits = PLACES.filter(
     (pl) =>
-      pl.bn.includes(q.trim()) ||
+      pl.bn.includes(raw) ||
       pl.en.toLowerCase().includes(needle) ||
-      pl.aliases.some((a) => a.toLowerCase().includes(needle) || a.includes(q.trim()))
+      pl.aliases.some((a) => a.toLowerCase().includes(needle) || a.includes(raw))
   );
+  // যেসব নাম লেখা দিয়ে শুরু হয় সেগুলো আগে — লম্বা তালিকায় খুঁজে পাওয়া সহজ হয়
+  const rank = (pl: Place) =>
+    pl.en.toLowerCase().startsWith(needle) || pl.bn.startsWith(raw) ? 0 : 1;
+  return hits.sort((a, b) => rank(a) - rank(b));
 }
