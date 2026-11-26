@@ -1,1 +1,1 @@
-varathik v7.2 - 2026-11-26 (live-typing bugfix: onInput, picker search ranking, blog sticky CTA + fare bars)
+varathik v7.3 - 2026-11-26 (premium brand refresh: Baloo Da 2, new logo mark, icons, OG)
